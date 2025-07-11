@@ -101,8 +101,9 @@ USE_I18N = True
 USE_TZ = True
 
 # Static and media files
-STATIC_URL = '/static/'
 STATIC_ROOT = '/var/lib/django/static/'
+STATIC_URL = '/static/'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/var/lib/django/media/'
 
