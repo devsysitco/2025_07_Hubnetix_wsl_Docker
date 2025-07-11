@@ -1,0 +1,468 @@
+{% load static %}
+<!-- Profile Management Modal -->
+<div class="modal fade auth-modal" id="profileModal" tabindex="-1" role="dialog" 
+     aria-labelledby="profileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header m-header">
+                
+                <h3 class="sub-mod-head">Manage Your Profile</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="auth-form">
+                    <div id="profile-messages" class="auth-messages" 
+                         aria-live="polite"></div>
+                    <ul class="nav nav-tabs mb-3" id="profileTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="view-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#view-profile" type="button" role="tab" 
+                                    aria-controls="view-profile" aria-selected="true">
+                                View Profile
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="edit-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#edit-profile" type="button" role="tab" 
+                                    aria-controls="edit-profile" aria-selected="false">
+                                Edit Profile
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="password-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#change-password" type="button" role="tab" 
+                                    aria-controls="change-password" aria-selected="false">
+                                Change Password
+                            </button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="profileTabContent">
+                        <!-- View Profile Tab -->
+                        <div class="tab-pane fade show active" id="view-profile" role="tabpanel" 
+                             aria-labelledby="view-tab">
+                            <div class="profile-details">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Full Name</label>
+                                    <p id="profile-fullname" class="form-control-static"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Email</label>
+                                    <p id="profile-email" class="form-control-static"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Username</label>
+                                    <p id="profile-username" class="form-control-static"></p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Phone</label>
+                                    <p id="profile-phone" class="form-control-static"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Edit Profile Tab -->
+                        <div class="tab-pane fade" id="edit-profile" role="tabpanel" 
+                             aria-labelledby="edit-tab">
+                            <form id="profile-edit-form" novalidate>
+                                {% csrf_token %}
+                                <div class="input-area-contact">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <input type="text" name="first_name" 
+                                                   id="edit-firstname" class="form-control" 
+                                                   placeholder="First Name" required 
+                                                   aria-required="true"
+                                                   autocomplete="given-name">
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <input type="text" name="last_name" 
+                                                   id="edit-lastname" class="form-control" 
+                                                   placeholder="Last Name" required 
+                                                   aria-required="true"
+                                                   autocomplete="family-name">
+                                            <div class="invalid-feedback"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <input type="email" name="email" id="edit-email" 
+                                               class="form-control" placeholder="Email" 
+                                               required aria-required="true"
+                                               autocomplete="email">
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <input type="text" name="username" 
+                                               id="edit-username" class="form-control" 
+                                               placeholder="Username" required 
+                                               aria-required="true"
+                                               autocomplete="username">
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <input type="tel" name="phone" id="edit-phone" 
+                                               class="form-control" required 
+                                               aria-required="true"
+                                               autocomplete="tel">
+                                        <input type="hidden" name="phone_country_code" 
+                                               id="edit-phone_country_code">
+                                        <input type="hidden" name="full_phone_number" 
+                                               id="edit-full_phone_number">
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                </div>
+                                <button class="buy-now" type="submit">
+                                    <span class="button-text">Save Changes</span>
+                                    <span class="loading-spinner d-none">
+                                        <span class="spinner-border spinner-border-sm" 
+                                              role="status" aria-hidden="true"></span>
+                                        Saving...
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                        <!-- Change Password Tab -->
+                        <div class="tab-pane fade" id="change-password" role="tabpanel" 
+                             aria-labelledby="password-tab">
+                            <form id="password-change-form" novalidate>
+                                {% csrf_token %}
+                                <div class="input-area-contact">
+                                    <div class="form-group mb-3">
+                                        <div class="input-group">
+                                            <input type="password" name="current_password" 
+                                                   id="current-password" class="form-control" 
+                                                   placeholder="Current Password" required 
+                                                   aria-required="true"
+                                                   autocomplete="current-password">
+                                            <button type="button" 
+                                                    class="btn btn-outline-secondary toggle-password" 
+                                                    aria-label="Toggle password visibility">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <div class="input-group">
+                                            <input type="password" name="new_password" 
+                                                   id="new-password" class="form-control" 
+                                                   placeholder="New Password" required 
+                                                   aria-required="true"
+                                                   autocomplete="new-password">
+                                            <button type="button" 
+                                                    class="btn btn-outline-secondary toggle-password" 
+                                                    aria-label="Toggle password visibility">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <div class="input-group">
+                                            <input type="password" name="confirm_new_password" 
+                                                   id="confirm-new-password" class="form-control" 
+                                                   placeholder="Confirm New Password" required 
+                                                   aria-required="true"
+                                                   autocomplete="new-password">
+                                            <button type="button" 
+                                                    class="btn btn-outline-secondary toggle-password" 
+                                                    aria-label="Toggle password visibility">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                                </div>
+                                <button class="buy-now" type="submit">
+                                    <span class="button-text">Change Password</span>
+                                    <span class="loading-spinner d-none">
+                                        <span class="spinner-border spinner-border-sm" 
+                                              role="status" aria-hidden="true"></span>
+                                        Changing...
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Utility functions
+    const getCookie = name => {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    };
+
+    const displayMessage = (containerId, type, message, isHtml = false) => {
+        const messagesDiv = document.getElementById(containerId);
+        messagesDiv.innerHTML = ''; // Clear previous messages
+        
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show`;
+        alert.setAttribute('role', 'alert');
+        
+        if (isHtml) {
+            alert.innerHTML = message;
+        } else {
+            alert.textContent = message;
+        }
+        
+        const closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.className = 'btn-close';
+        closeButton.setAttribute('data-bs-dismiss', 'alert');
+        closeButton.setAttribute('aria-label', 'Close');
+        
+        alert.appendChild(closeButton);
+        messagesDiv.appendChild(alert);
+    };
+
+    // Password strength checker
+    const checkPasswordStrength = (password) => {
+        let strength = 0;
+        const checks = {
+            length: password.length >= 8,
+            hasUpperCase: /[A-Z]/.test(password),
+            hasLowerCase: /[a-z]/.test(password),
+            hasNumbers: /\d/.test(password),
+            hasSpecialChars: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+        };
+        
+        strength += Object.values(checks).filter(Boolean).length;
+        
+        return strength;
+    };
+
+    // Initialize phone input
+    const editPhoneInput = document.querySelector("#edit-phone");
+    let editIti = null;
+    
+    if (editPhoneInput) {
+        editIti = window.intlTelInput(editPhoneInput, {
+            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+            separateDialCode: true,
+            initialCountry: "auto",
+            geoIpLookup: function(callback) {
+                fetch("https://ipapi.co/json")
+                    .then(res => res.json())
+                    .then(data => callback(data.country_code))
+                    .catch(() => callback("US"));
+            },
+        });
+    }
+
+    // Modal handling
+    const profileModal = new bootstrap.Modal(document.getElementById('profileModal'));
+
+    // Fetch profile data
+    const loadProfileData = async () => {
+        try {
+            const response = await fetch('/customer/profile/', {
+                method: 'GET',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+            
+            const data = await response.json();
+            if (data.status === 'success') {
+                document.getElementById('profile-fullname').textContent = 
+                    `${data.profile.first_name} ${data.profile.last_name}`;
+                document.getElementById('profile-email').textContent = data.profile.email;
+                document.getElementById('profile-username').textContent = data.profile.username;
+                document.getElementById('profile-phone').textContent = data.profile.phone;
+                
+                // Populate edit form
+                document.getElementById('edit-firstname').value = data.profile.first_name;
+                document.getElementById('edit-lastname').value = data.profile.last_name;
+                document.getElementById('edit-email').value = data.profile.email;
+                document.getElementById('edit-username').value = data.profile.username;
+                if (editIti && data.profile.phone) {
+                    editIti.setNumber(data.profile.phone);
+                }
+            } else {
+                displayMessage('profile-messages', 'danger', data.message || 'Failed to load profile');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            displayMessage('profile-messages', 'danger', 'An unexpected error occurred');
+        }
+    };
+
+    // Profile Modal show event
+    document.getElementById('profileModal').addEventListener('show.bs.modal', function() {
+        loadProfileData();
+    });
+
+    // Profile Edit Form Handler
+    const profileEditForm = document.getElementById('profile-edit-form');
+    if (profileEditForm) {
+        profileEditForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            document.getElementById('profile-messages').innerHTML = '';
+            
+            const submitButton = this.querySelector('button[type="submit"]');
+            const buttonText = submitButton.querySelector('.button-text');
+            const loadingSpinner = submitButton.querySelector('.loading-spinner');
+
+            const formData = {
+                first_name: document.getElementById('edit-firstname').value.trim(),
+                last_name: document.getElementById('edit-lastname').value.trim(),
+                email: document.getElementById('edit-email').value.trim(),
+                username: document.getElementById('edit-username').value.trim(),
+            };
+
+            for (const [key, value] of Object.entries(formData)) {
+                if (!value) {
+                    displayMessage('profile-messages', 'danger', 'Please fill in all required fields');
+                    return;
+                }
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                displayMessage('profile-messages', 'danger', 'Please enter a valid email address');
+                return;
+            }
+
+            if (formData.username.length < 3 || !/^[\w.@+-]+$/.test(formData.username)) {
+                displayMessage('profile-messages', 'danger', 'Username must be at least 3 characters and contain only letters, numbers, and @/./+/-/_');
+                return;
+            }
+
+            if (editIti) {
+                if (!editIti.isValidNumber()) {
+                    displayMessage('profile-messages', 'danger', 'Please enter a valid phone number');
+                    return;
+                }
+                formData.phone = editIti.getNumber();
+                formData.phone_country_code = editIti.getSelectedCountryData().dialCode;
+            }
+
+            submitButton.disabled = true;
+            buttonText.classList.add('d-none');
+            loadingSpinner.classList.remove('d-none');
+
+            try {
+                const response = await fetch('/customer/profile/update/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(formData),
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    displayMessage('profile-messages', 'success', 'Profile updated successfully!');
+                    loadProfileData();
+                    setTimeout(() => {
+                        document.querySelector('#view-tab').click();
+                    }, 1000);
+                } else {
+                    displayMessage('profile-messages', 'danger', data.message || 'Profile update failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                displayMessage('profile-messages', 'danger', 'An unexpected error occurred');
+            } finally {
+                submitButton.disabled = false;
+                buttonText.classList.remove('d-none');
+                loadingSpinner.classList.add('d-none');
+            }
+        });
+    }
+
+    // Password Change Form Handler
+    const passwordChangeForm = document.getElementById('password-change-form');
+    if (passwordChangeForm) {
+        passwordChangeForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            document.getElementById('profile-messages').innerHTML = '';
+            
+            const submitButton = this.querySelector('button[type="submit"]');
+            const buttonText = submitButton.querySelector('.button-text');
+            const loadingSpinner = submitButton.querySelector('.loading-spinner');
+
+            const formData = {
+                current_password: document.getElementById('current-password').value,
+                new_password: document.getElementById('new-password').value,
+                confirm_new_password: document.getElementById('confirm-new-password').value
+            };
+
+            if (!formData.current_password || !formData.new_password || !formData.confirm_new_password) {
+                displayMessage('profile-messages', 'danger', 'Please fill in all required fields');
+                return;
+            }
+
+            if (formData.new_password !== formData.confirm_new_password) {
+                displayMessage('profile-messages', 'danger', 'New passwords do not match');
+                return;
+            }
+
+            if (checkPasswordStrength(formData.new_password) < 3) {
+                displayMessage('profile-messages', 'danger', 'Please choose a stronger password');
+                return;
+            }
+
+            submitButton.disabled = true;
+            buttonText.classList.add('d-none');
+            loadingSpinner.classList.remove('d-none');
+
+            try {
+                const response = await fetch('/customer/password/change/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(formData),
+                    credentials: 'same-origin'
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    displayMessage('profile-messages', 'success', 'Password changed successfully!');
+                    passwordChangeForm.reset();
+                    setTimeout(() => {
+                        document.querySelector('#view-tab').click();
+                    }, 1000);
+                } else {
+                    displayMessage('profile-messages', 'danger', data.message || 'Password change failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                displayMessage('profile-messages', 'danger', 'An unexpected error occurred');
+            } finally {
+                submitButton.disabled = false;
+                buttonText.classList.remove('d-none');
+                loadingSpinner.classList.add('d-none');
+            }
+        });
+    }
+});
+</script>

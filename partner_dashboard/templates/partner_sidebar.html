@@ -1,0 +1,354 @@
+{% load static %}
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-inner slimscroll">
+        <div id="sidebar-menu" class="sidebar-menu">
+            <ul>
+                <li class="submenu-open">
+                    <h6 class="submenu-hdr">Main</h6>
+                    <ul>
+                        <li>
+                            <a href="{% url 'partner_dashboard-dashboard' %}" id="dashboard-link">
+                                <i data-feather="grid"></i><span>Dashboard</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="submenu-open">
+                  <h6 class="submenu-hdr">Partners Management</h6>
+                  <ul>
+                      <li>
+                        <a href="{% url 'partner_dashboard-resource_list' %}" id="resource-create-link">
+                            <i data-feather="folder-minus"></i><span>Partners Resource</span>
+                        </a>
+                    </li>
+                  </ul>
+              </li>
+
+                <!-- Logout -->
+                <li class="submenu-open">
+                    <ul>
+                        <li>
+                            <a href="{% url 'partner_dashboard-logout' %}">
+                                <i data-feather="log-out"></i><span>Logout</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+
+{% block extra_js %}
+<!-- Alert dismissal script -->
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+      setTimeout(() => {
+          document.querySelectorAll('.alert').forEach(alert => {
+              alert.classList.remove('show');
+              alert.classList.add('fade');
+              setTimeout(() => {
+                  alert.remove();
+              }, 500); // Allow time for fade-out effect
+          });
+      }, 2000); // 2 seconds delay
+  });
+</script>
+
+<!-- Active menu handler with scroll-to-active -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const path = window.location.pathname;
+    console.log("Current path:", path); // Debug output
+
+    const menuItems = {
+      dashboard: { id: "dashboard-link", path: "/partner-manager/$" },
+      partnersResource: { id: "resource-create-link", path: "/partner-manager/resources/" },
+    };
+
+    function highlightMenuItem() {
+        document.querySelectorAll('#sidebar-menu a').forEach(link => {
+            link.style.color = '';
+            link.classList.remove('active-menu-item');
+        });
+
+        let activeFound = false;
+
+        for (const [key, item] of Object.entries(menuItems)) {
+            if (path.includes(item.path)) {
+                const element = document.getElementById(item.id);
+                if (element) {
+                    console.log("Highlighting:", item.id); // Debug output
+                    element.style.color = "#30c067";
+                    element.classList.add('active-menu-item');
+                    activeFound = true;
+
+                    // Smoothly scroll to the active element
+                    setTimeout(() => {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100); // Small delay to ensure the DOM is fully updated
+                    break;
+                }
+            }
+        }
+
+        if (!activeFound && (path === '/partner-manager/' || path === '/partner-manager')) {
+            const dashboardElement = document.getElementById('dashboard-link');
+            if (dashboardElement) {
+                dashboardElement.style.color = "#30c067";
+                dashboardElement.classList.add('active-menu-item');
+
+                // Smoothly scroll to the dashboard element
+                setTimeout(() => {
+                    dashboardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
+        }
+    }
+
+    // Allow previous scroll scripts to execute
+    setTimeout(highlightMenuItem, 100);
+  });
+</script>
+
+<!-- Enhanced scroll persistence with unified functionality -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const DEBUG = true;
+    function log(message) {
+        if (DEBUG) console.log(`Sidebar Debug: ${message}`);
+    }
+
+    function getSidebar() {
+        return document.querySelector('.sidebar-inner.slimscroll');
+    }
+
+    let isManuallyScrolling = false;
+    let lastKnownScrollPosition = parseInt(localStorage.getItem('sidebarScrollPosition')) || 0;
+
+    function saveScrollPosition(scrollTop) {
+        const position = scrollTop || getSidebar()?.scrollTop || 0;
+        localStorage.setItem('sidebarScrollPosition', position.toString());
+        lastKnownScrollPosition = position;
+        log(`Saved scroll position: ${position}`);
+    }
+
+    function restoreScrollPosition() {
+        const sidebar = getSidebar();
+        if (!sidebar) return;
+        if (lastKnownScrollPosition > 0) {
+            log(`Restoring scroll position to ${lastKnownScrollPosition}`);
+            sidebar.scrollTop = lastKnownScrollPosition;
+        }
+    }
+
+    function initScrollHandler() {
+        const sidebar = getSidebar();
+        if (!sidebar) return;
+
+        // Initial scroll restoration
+        setTimeout(restoreScrollPosition, 100);
+
+        // Manual scrolling detection
+        sidebar.addEventListener('scroll', function(e) {
+            if (!isManuallyScrolling) {
+                isManuallyScrolling = true;
+                log('Manual scrolling detected');
+            }
+
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const currentScroll = sidebar.scrollTop;
+                saveScrollPosition(currentScroll);
+                isManuallyScrolling = false;
+                log(`Scroll ended, saved position: ${currentScroll}`);
+            }, 150);
+        });
+
+        // Save scroll on link click
+        const sidebarLinks = document.querySelectorAll('#sidebar-menu a');
+        log(`Found ${sidebarLinks.length} sidebar links`);
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const sidebar = getSidebar();
+                if (sidebar) {
+                    saveScrollPosition(sidebar.scrollTop);
+                    log(`Saved position before navigation: ${sidebar.scrollTop}`);
+                }
+            });
+        });
+    }
+
+    function preventScrollReset() {
+        window.addEventListener('hashchange', function(e) {
+            e.preventDefault();
+            setTimeout(restoreScrollPosition, 10);
+        });
+        const sidebar = getSidebar();
+        if (!sidebar) return;
+
+        // Backup check for scroll position
+        let backupInterval = setInterval(() => {
+            if (!isManuallyScrolling && sidebar.scrollTop !== lastKnownScrollPosition) {
+                log('Scroll position mismatch detected, restoring...');
+                restoreScrollPosition();
+            }
+        }, 1000);
+
+        setTimeout(() => {
+            clearInterval(backupInterval);
+            log('Cleared backup interval');
+        }, 10000);
+    }
+
+    function ensureSidebarScrollable() {
+        const sidebar = getSidebar();
+        if (sidebar) {
+            sidebar.style.height = 'calc(100vh - 60px)';
+            sidebar.style.overflowY = 'auto';
+        }
+    }
+
+    ensureSidebarScrollable();
+    initScrollHandler();
+    preventScrollReset();
+  });
+</script>
+
+<!-- Optimized sidebar scroll solution with performance enhancements -->
+<script>
+  $(document).ready(function() {
+    function fixSidebarScroll() {
+      const $sidebar = $('.sidebar-inner.slimscroll');
+      
+      if (!$sidebar.length) return;
+      
+      // Cleanup existing scroll handlers
+      if ($.fn.slimScroll) {
+        try {
+          $sidebar.slimScroll({destroy: true});
+        } catch(e) {
+          console.log("Error destroying slimscroll:", e);
+        }
+      }
+      $sidebar.off('scroll touchstart mouseenter mouseleave').attr('style', '');
+      
+      // Apply optimized styles
+      $sidebar.css({
+        'height': 'calc(100vh - 60px)',
+        'overflow-y': 'auto',
+        'overflow-x': 'hidden',
+        'position': 'relative',
+        'will-change': 'scroll-position',
+        '-webkit-overflow-scrolling': 'touch'
+      });
+
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS) $sidebar.css('-webkit-transform', 'translate3d(0,0,0)');
+      
+      if (!$('#sidebar-scroll-styles').length) {
+        $('<style id="sidebar-scroll-styles">')
+          .prop('type', 'text/css')
+          .html(`
+            .sidebar-inner.slimscroll {
+              scrollbar-width: thin;
+              scroll-behavior: smooth;
+            }
+            .sidebar-inner.slimscroll::-webkit-scrollbar {
+              width: 5px;
+            }
+            .sidebar-inner.slimscroll::-webkit-scrollbar-track {
+              background: rgba(0,0,0,0.05);
+            }
+            .sidebar-inner.slimscroll::-webkit-scrollbar-thumb {
+              background: rgba(0,0,0,0.2);
+              border-radius: 4px;
+            }
+            body, html {
+              overflow-x: hidden;
+            }
+            .sidebar {
+              z-index: 1000;
+              position: fixed;
+            }
+            @media (max-width: 991px) {
+              .sidebar {
+                position: fixed;
+              }
+            }
+          `)
+          .appendTo('head');
+      }
+
+      function restorePosition() {
+        try {
+          const savedPosition = localStorage.getItem('sidebarScrollPosition');
+          if (savedPosition) $sidebar.scrollTop(parseInt(savedPosition));
+        } catch(e) {
+          console.log("Error restoring scroll position:", e);
+        }
+      }
+
+      function debounce(func, wait) {
+        let timeout;
+        return function() {
+          const context = this, args = arguments;
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(context, args), wait);
+        };
+      }
+
+      $sidebar.on('scroll', debounce(function() {
+        saveScrollPosition($sidebar.scrollTop());
+      }, 200));
+
+      restorePosition();
+
+      $('#toggle_btn, #mobile_btn').off('click.sidebarFix').on('click.sidebarFix', function() {
+        setTimeout(fixSidebarScroll, 300);
+      });
+
+      $('#sidebar-menu a').off('click.sidebarFix').on('click.sidebarFix', function() {
+        localStorage.setItem('sidebarScrollPosition', $sidebar.scrollTop());
+      });
+
+      setTimeout(function() {
+        $sidebar.css('display', 'none');
+        $sidebar[0].offsetHeight;
+        $sidebar.css('display', 'block');
+      }, 50);
+    }
+
+    function saveScrollPosition(scrollTop) {
+      try {
+        localStorage.setItem('sidebarScrollPosition', scrollTop);
+      } catch(e) {
+        console.log("Error saving scroll position:", e);
+      }
+    }
+
+    fixSidebarScroll();
+
+    $(window).on('load', fixSidebarScroll);
+
+    $(window).on('pageshow', function(event) {
+      if (event.originalEvent.persisted) fixSidebarScroll();
+    });
+
+    const resizeThrottle = _.throttle(fixSidebarScroll, 150);
+    $(window).on('resize', resizeThrottle);
+
+    if (window.MutationObserver) {
+      const observer = new MutationObserver(function(mutations) {
+        if (mutations.some(m => $(m.target).closest('.sidebar').length)) {
+          fixSidebarScroll();
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+  });
+</script>
+{% endblock extra_js %}

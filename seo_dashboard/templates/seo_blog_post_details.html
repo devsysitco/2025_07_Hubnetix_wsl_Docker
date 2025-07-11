@@ -1,0 +1,177 @@
+{% include 'seo_dashboard_base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+<style>
+    /* Blog Post Details Styling */
+    .blog-post-details-container {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .blog-post-bar {
+        list-style-type: none;
+        padding: 0;
+    }
+    .blog-post-bar li {
+        margin-bottom: 15px;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+    .blog-post-bar li h4 {
+        color: #6c757d;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    .blog-post-bar li h6 {
+        color: #333;
+    }
+
+    /* Image Gallery Styling */
+    .blog-image-gallery {
+        margin-top: 20px;
+    }
+    .blog-image-gallery .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+        margin-bottom: 15px;
+    }
+    .blog-image-gallery .gallery-item:hover {
+        transform: scale(1.05);
+    }
+    .blog-image-gallery img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+    .image-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.5);
+        color: white;
+        padding: 5px 10px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Blog Post Details</h4>
+                <h6>Explore comprehensive blog post information</h6>
+            </div>
+            <div class="action-buttons d-flex">
+                <a href="{% url 'seo_dashboard-blog_post_list' %}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+                <a href="{% url 'seo_dashboard-blog_post_edit' blog_post.pk %}" class="btn btn-outline-primary">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="messages-container mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <!-- Determine Column Size Based on Image Existence -->
+            {% if blog_post.featured_image %}
+            <div class="col-lg-8 col-sm-12">
+            {% else %}
+            <div class="col-lg-12 col-sm-12">
+            {% endif %}
+                <div class="card blog-post-details-container">
+                    <div class="card-body">
+                        
+                        <!-- Blog Post Information List -->
+                        <ul class="blog-post-bar">
+                            <li>
+                                <h4>Blog Title</h4>
+                                <h6>{{ blog_post.title }}</h6>
+                            </li>
+                            <li>
+                                <h4>Category</h4>
+                                <h6>{{ blog_post.get_category_display }}</h6>
+                            </li>
+                            <li>
+                                <h4>Tags</h4>
+                                <h6>{{ blog_post.tags }}</h6>
+                            </li>
+                            <li>
+                                <h4>Short Description</h4>
+                                <h6>{{ blog_post.short_description|safe }}</h6>
+                            </li>
+                            <li>
+                                <h4>Content</h4>
+                                <h6>{{ blog_post.content|safe }}</h6>
+                            </li>
+                            <li>
+                                <h4>Slug</h4>
+                                <h6>{{ blog_post.slug }}</h6>
+                            </li>
+                            <li>
+                                <h4>Meta Tags</h4>
+                                <h6>{{ blog_post.meta_tags }}</h6>
+                            </li>
+                            <li>
+                                <h4>Meta Description</h4>
+                                <h6>{{ blog_post.meta_description|safe }}</h6>
+                            </li>
+                            <li>
+                                <h4>Featured Image Alt</h4>
+                                <h6>
+                                    {% if blog_post.featured_image_alt %}
+                                        {{ blog_post.featured_image_alt }}
+                                    {% else %}
+                                        No Alt Tag
+                                    {% endif %}
+                                </h6>
+                            </li>                            
+                        </ul>                        
+                    </div>
+                </div>
+            </div>
+
+            {% if blog_post.featured_image %}
+            <!-- Image Gallery Column -->
+            <div class="col-lg-4 col-sm-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="blog-image-gallery">
+                            <div class="gallery-item">
+                                <a href="{{ blog_post.featured_image.url }}" data-fancybox="blog-gallery" data-caption="Featured Image">
+                                    <img src="{{ blog_post.featured_image.url }}" alt="Featured Image">
+                                    <div class="image-label">Featured Image</div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+{% endblock %}

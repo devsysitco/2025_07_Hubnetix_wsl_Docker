@@ -1,0 +1,271 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload & Crop Cover Image</title>
+    <style>
+        body {
+            margin: 20px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .container {
+            position: relative;
+            width: 500px;
+            height: 700px;
+            margin-top: 20px;
+            border: 2px dashed #ccc;
+            overflow: hidden;
+        }
+
+        .preview-container {
+            width: 400px;
+            height: 600px;
+            border: 1px solid #ddd;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        #uploadedImage {
+            display: block;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+        }
+
+        #cropBtn {
+            display: block;
+            margin: 10px auto;
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .color-options {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+        
+        .color-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .color-option label {
+            margin-right: 10px;
+            flex: 1;
+        }
+        
+        .color-preview {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ccc;
+            display: inline-block;
+            margin-right: 10px;
+        }
+    </style>
+    
+    <!-- Cropper.js CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <h2>Upload & Crop Cover Image</h2>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" id="imageUpload" accept="image/*">
+        
+        <div class="color-options">
+            <div class="color-option">
+                <label for="borderColor">Border Color:</label>
+                <div class="color-preview" id="borderColorPreview"></div>
+                <input type="color" id="borderColor" value="#333333">
+            </div>
+            
+            <div class="color-option">
+                <label for="textColor">Text Color:</label>
+                <div class="color-preview" id="textColorPreview"></div>
+                <input type="color" id="textColor" value="#FFFFFF">
+            </div>
+            
+            <div class="color-option">
+                <label for="titleText">Title Text:</label>
+                <input type="text" id="titleText" value="NoteBook" style="flex: 1;">
+            </div>
+        </div>
+        
+        <button id="cropBtn" type="button">Crop & Upload</button>
+    </form>
+
+    <div class="preview-container">
+        <img id="uploadedImage">
+    </div>
+
+    <div class="container" title="Cover Preview">
+        <canvas id="finalCanvas" width="500" height="700"></canvas>
+    </div>
+
+    <!-- Cropper.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <script>
+        let cropper;
+        const borderColorInput = document.getElementById('borderColor');
+        const textColorInput = document.getElementById('textColor');
+        const titleTextInput = document.getElementById('titleText');
+        const borderColorPreview = document.getElementById('borderColorPreview');
+        const textColorPreview = document.getElementById('textColorPreview');
+        
+        // Initialize color previews
+        borderColorPreview.style.backgroundColor = borderColorInput.value;
+        textColorPreview.style.backgroundColor = textColorInput.value;
+        
+        // Update color previews when inputs change
+        borderColorInput.addEventListener('input', function() {
+            borderColorPreview.style.backgroundColor = this.value;
+            updateCanvasPreview();
+        });
+        
+        textColorInput.addEventListener('input', function() {
+            textColorPreview.style.backgroundColor = this.value;
+            updateCanvasPreview();
+        });
+        
+        titleTextInput.addEventListener('input', updateCanvasPreview);
+
+        document.getElementById('imageUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const image = document.getElementById('uploadedImage');
+                    image.src = e.target.result;
+                    image.style.display = 'block';
+
+                    // Initialize cropper
+                    if (cropper) cropper.destroy(); // Cleanup previous cropper
+                    cropper = new Cropper(image, {
+                        aspectRatio: 2 / 3,
+                        viewMode: 1,
+                        movable: true,
+                        zoomable: true,
+                        scalable: false,
+                        ready: function() {
+                            updateCanvasPreview();
+                        }
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        function updateCanvasPreview() {
+            if (!cropper) return;
+            
+            const finalCanvas = document.getElementById('finalCanvas');
+            const ctx = finalCanvas.getContext('2d');
+            
+            // Clear the canvas
+            ctx.clearRect(0, 0, finalCanvas.width, finalCanvas.height);
+            
+            // Get the cropped canvas
+            const croppedCanvas = cropper.getCroppedCanvas({
+                width: 400,
+                height: 600
+            });
+            
+            // Draw the cropped image to fill the entire canvas
+            ctx.drawImage(croppedCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
+            
+            // Then draw the notebook borders on top with custom colors
+            drawNotebookBorders(
+                ctx, 
+                finalCanvas.width, 
+                finalCanvas.height, 
+                borderColorInput.value,
+                textColorInput.value,
+                titleTextInput.value
+            );
+        }
+
+        document.getElementById('cropBtn').addEventListener('click', function() {
+            // Check if image is loaded and cropped
+            if (!cropper) {
+                alert('Please select and crop an image first!');
+                return;
+            }
+
+            const finalCanvas = document.getElementById('finalCanvas');
+            
+            // Convert canvas to image data
+            finalCanvas.toBlob(function(blob) {
+                const formData = new FormData();
+                formData.append("image", blob, "final_cover.png");
+
+                // Send to server
+                fetch("{% url 'upload_cover' %}", {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-CSRFToken": '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = "{% url 'preview_cover' %}";
+                    } else {
+                        console.error('Upload Error:', data.error);
+                    }
+                })
+                .catch(err => {
+                    console.error('Network Error:', err.message);
+                });
+            }, 'image/png');
+        });
+        
+        // Function to draw notebook borders on the canvas
+        function drawNotebookBorders(ctx, width, height, borderColor, textColor, titleText) {
+            // Top border
+            ctx.fillStyle = borderColor;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(width, 0);
+            ctx.lineTo(width, 80);
+            ctx.quadraticCurveTo(width/2, 120, 0, 80);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Bottom border
+            ctx.beginPath();
+            ctx.moveTo(0, height);
+            ctx.lineTo(width, height);
+            ctx.lineTo(width, height-80);
+            ctx.quadraticCurveTo(width/2, height-120, 0, height-80);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Header text
+            ctx.fillStyle = textColor;
+            ctx.font = '18px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText(titleText, width - 20, 30);
+        }
+    </script>
+</body>
+</html>

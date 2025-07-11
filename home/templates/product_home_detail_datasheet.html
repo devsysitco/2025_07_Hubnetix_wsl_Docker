@@ -1,0 +1,187 @@
+{% extends 'home_base.html' %}
+{% load static %}
+
+{% block meta_description %}{{ product.meta_description }}{% endblock %}
+{% block meta_keywords %}{{ product.meta_tags }}{% endblock %}
+{% block og_title %}{% if product.seo_name %}{{ product.seo_name }} | Hubnetix{% else %}{{ product.name }} | Hubnetix{% endif %}{% endblock %}
+{% block og_description %}{{ product.meta_description }}{% endblock %}
+{% block og_image %}{% if product.main_image %}{{ request.scheme }}://{{ request.get_host }}{{ product.main_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'home_assets/media/default-image.png' %}{% endif %}{% endblock %}
+{% block title %}{% if product.seo_name %}{{ product.seo_name }} | Hubnetix{% else %}{{ product.name }} | Hubnetix{% endif %}{% endblock %}
+{% block canonical_url %}<link rel="canonical" href="{% if product.canonical_url %}{{ product.canonical_url }}{% else %}{{ request.build_absolute_uri }}{% endif %}">{% endblock %}
+
+{% block extra_head %}
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" integrity="sha256-6N8u1iQSnf7vYAEg1kj+2z3GK4Ts4O6o5tG0V3I5f4A=" crossorigin="anonymous" />
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<!-- Fallback for jQuery -->
+<script>
+    window.jQuery || document.write('<script src="{% static 'home_assets/js/jquery-3.6.0.min.js' %}"><\/script>');
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- Banner Section -->
+<section class="product-detail">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Product Image Gallery -->
+            <div class="col-12 col-md-6">
+                <!-- Main Swiper -->
+                <div style="--swiper-navigation-color: #fff; --swiper-pagination-color: #fff" class="swiper mySwiper2">
+                    <div class="swiper-wrapper">
+                        <!-- Main image -->
+                        <div class="swiper-slide">
+                            {% if product.main_image %}
+                                <img src="{{ product.main_image.url }}" alt="{{ product.main_image_alt|default:product.name }}" />
+                            {% else %}
+                                <img src="{% static 'home_assets/media/default-image.png' %}" alt="{{ product.name }} - Default Image" />
+                            {% endif %}
+                        </div>
+                        {% for image in product.images.all %}
+                        <div class="swiper-slide">
+                            <img src="{{ image.product_image.url }}" alt="{{ image.alt_text|default:product.name }}" />
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
+                </div>
+                
+                <!-- Thumbnail Swiper -->
+                <div thumbsSlider="" class="swiper mySwiper mt-3">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide">
+                            {% if product.main_image %}
+                                <img src="{{ product.main_image.url }}" alt="{{ product.main_image_alt|default:product.name }} - Thumbnail" />
+                            {% else %}
+                                <img src="{% static 'home_assets/media/default-image.png' %}" alt="{{ product.name }} - Default Thumbnail" />
+                            {% endif %}
+                        </div>
+                        {% for image in product.images.all %}
+                        <div class="swiper-slide">
+                            <img src="{{ image.product_image.url }}" alt="{{ image.alt_text|default:product.name }} - Thumbnail" />
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Product Details -->
+            <div class="col-12 col-md-6">
+                <div class="pro-area">
+                    <h4 class="text-uppercase mb-3">
+                        {% for category in product.categories.all %}
+                            {{ category.name }}{% if not forloop.last %} | {% endif %}
+                        {% endfor %}
+                    </h4>
+                    <h2 class="mb-3">{{ product.name }}</h2>
+                    <h3 class="mb-4">{{ product.short_description }}</h3>
+                    <div class="product-description">
+                        {{ product.detailed_description|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Include Datasheet Filters -->
+        {% include 'product_home_datasheet_filters.html' %}
+    </div>
+</section>
+
+{% include 'product_home_list_modal_datasheet.html' %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Product Detail Styles */
+    .product-detail {
+        padding: 2rem 0;
+    }
+
+    /* Product Info Styles */
+    .pro-area h4 {
+        color: #666;
+        font-size: 1rem;
+        letter-spacing: 1px;
+    }
+
+    .pro-area h2 {
+        color: #333;
+        font-size: 2rem;
+        font-weight: 600;
+    }
+
+    .pro-area h3 {
+        color: #555;
+        font-size: 1.2rem;
+        font-weight: 400;
+    }
+
+    .product-description {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    /* Metadata Styles */
+    .metadata {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .pro-area h2 {
+            font-size: 1.5rem;
+        }
+
+        .pro-area h3 {
+            font-size: 1.1rem;
+        }
+        
+        .metadata {
+            text-align: center;
+            margin-top: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js" integrity="sha256-uZaBhV6z2v3e9bH1IPB3WVH6Z4G97G3nNbfy4kr2nRw=" crossorigin="anonymous"></script>
+
+<script>
+    // Initialize Swiper
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, initializing Swiper');
+        var thumbsSwiper = new Swiper(".mySwiper", {
+            spaceBetween: 10,
+            slidesPerView: 4,
+            freeMode: true,
+            watchSlidesProgress: true,
+            breakpoints: {
+                320: {
+                    slidesPerView: 3,
+                },
+                480: {
+                    slidesPerView: 4,
+                }
+            }
+        });
+
+        var mainSwiper = new Swiper(".mySwiper2", {
+            spaceBetween: 10,
+            navigation: {
+                nextEl: ".swiper-button-next",
+                prevEl: ".swiper-button-prev",
+            },
+            thumbs: {
+                swiper: thumbsSwiper,
+            },
+        });
+    });
+</script>
+{% endblock %}

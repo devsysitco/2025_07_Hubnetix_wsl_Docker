@@ -1,0 +1,596 @@
+{% load static %}
+{% if product.datasheets.all %}
+<section id="datasheets-section" class="py-5">
+    <div class="container">
+        <h2 class="section-title text-center mb-4">Product Datasheets</h2>
+        
+        <!-- Filter Section -->
+        <div class="filter-section mb-4" id="datasheet-filters">
+            <div class="row g-3">
+                <!-- Part Number Filter -->
+                <div class="col-md-4 col-lg-2 part-filter-container">
+                    <label for="part-filter" class="form-label">Part Number:</label>
+                    <select id="part-filter" class="form-select" aria-label="Filter by part number"></select>
+                </div>
+                
+                <!-- Size Filter -->
+                <div class="col-md-4 col-lg-2 size-filter-container">
+                    <label for="size-filter" class="form-label">Size:</label>
+                    <select id="size-filter" class="form-select" aria-label="Filter by size"></select>
+                </div>
+
+                <!-- Width Filter -->
+                <div class="col-md-4 col-lg-2 width-filter-container">
+                    <label for="width-filter" class="form-label">Width:</label>
+                    <select id="width-filter" class="form-select" aria-label="Filter by width"></select>
+                </div>
+
+                <!-- Depth Filter -->
+                <div class="col-md-4 col-lg-2 depth-filter-container">
+                    <label for="depth-filter" class="form-label">Depth:</label>
+                    <select id="depth-filter" class="form-select" aria-label="Filter by depth"></select>
+                </div>
+
+                <!-- Height Filter -->
+                <div class="col-md-4 col-lg-2 height-filter-container">
+                    <label for="height-filter" class="form-label">Height:</label>
+                    <select id="height-filter" class="form-select" aria-label="Filter by height"></select>
+                </div>
+
+                <!-- View Toggle Buttons -->
+                <div class="col-md-4 col-lg-2 d-flex align-items-end">
+                    <div class="view-toggle btn-group w-100">
+                        <button id="list-view-btn" class="btn btn-outline-secondary active" title="List View">
+                            <i class="fas fa-list"></i>
+                        </button>
+                        <button id="grid-view-btn" class="btn btn-outline-secondary" title="Grid View">
+                            <i class="fas fa-th"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Results Counter -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div id="results-counter" class="results-counter text-end" style="display: none;">
+                        Showing <strong id="results-count">0</strong> datasheets
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Datasheets List -->
+        <div id="datasheet-list" class="datasheet-list"></div>
+
+        <!-- No Results Message -->
+        <div id="no-results" class="alert alert-info text-center" style="display: none;" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            No datasheets match the selected filters. 
+            <a href="#" id="reset-filters-link">Reset filters</a>
+        </div>
+
+        <!-- Debug Output (Comment out in production) -->
+        <!--
+        <div class="debug-info mt-4">
+            <h5>Debug Info</h5>
+            <pre id="debug-filtered-items"></pre>
+            <pre id="debug-filters"></pre>
+        </div>
+        -->
+    </div>
+</section>
+{% else %}
+<div class="alert alert-info text-center">
+    No datasheets available for this product.
+</div>
+{% endif %}
+
+{% block extra_css %}
+<style>
+    /* Filter Section Styles */
+    .filter-section {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .form-select {
+        height: 38px;
+        border-radius: 4px;
+        border-color: #dee2e6;
+        font-size: 0.9rem;
+    }
+
+    .form-select:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+
+    .form-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Datasheet Item Styles */
+    .datasheet-item .card {
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .datasheet-item .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .datasheet-row {
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .datasheet-row:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .datasheet-name {
+        font-weight: 600;
+        color: #1a1a1a;
+        font-size: 1.1rem;
+    }
+
+    .datasheet-description {
+        color: #555;
+        font-size: 0.95rem;
+    }
+
+    .dimensions-info span {
+        display: inline-block;
+        margin-right: 1rem;
+    }
+
+    /* Button Styles */
+    .btn-primary {
+        background-color: rgba(210, 60, 76, 1);
+        border-color: rgba(210, 60, 76, 1);
+        padding: 0.5rem 1rem;
+    }
+
+    .btn-primary:hover {
+        background-color: rgba(180, 50, 66, 1);
+        border-color: rgba(180, 50, 66, 1);
+    }
+
+    .btn-outline-secondary {
+        height: 38px;
+        font-size: 0.9rem;
+    }
+
+    /* Add to List Dropdown Styles */
+    .buy-now {
+        position: relative;
+    }
+
+    .show-box {
+        display: none;
+        position: absolute;
+        background-color: white;
+        border: 1px solid #ddd;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        padding: 10px;
+        width: 220px;
+        top: 100%;
+        right: 0;
+    }
+
+    .show-box ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .show-box li {
+        margin-bottom: 5px;
+    }
+
+    .box-bottom {
+        margin-top: 10px;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+    }
+
+    .add-to-list-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 8px;
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    .add-to-list-btn:hover {
+        background-color: #e9ecef;
+    }
+
+    .list-v {
+        display: block;
+        color: #007bff;
+        margin: 5px 0;
+        text-decoration: none;
+    }
+
+    .list-checkbox, .form-check-label {
+        cursor: pointer;
+    }
+
+    /* Grid View Styles */
+    .datasheet-list.grid-view {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .grid-view .datasheet-item {
+        margin-bottom: 0; /* Remove bottom margin for grid items */
+    }
+
+    .grid-view .datasheet-row {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 1.5rem;
+    }
+
+    .grid-view .datasheet-name {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .grid-view .datasheet-description {
+        flex-grow: 1;
+        font-size: 0.9rem;
+    }
+
+    .grid-view .datasheet-action {
+        margin-top: 1rem;
+        justify-content: center;
+    }
+
+    .grid-view .btn {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    /* Active state for toggle buttons */
+    .view-toggle .btn.active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 992px) {
+        .filter-section {
+            padding: 1rem;
+        }
+        
+        .form-select {
+            max-width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .dimensions-info span {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn-primary, .buy-now {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .datasheet-action {
+            flex-direction: column !important;
+            align-items: stretch;
+        }
+    }
+
+    /* Smooth transition for view switching */
+    .datasheet-list {
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Dependencies -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Initialize filters and datasheets
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, initializing datasheet filters');
+        try {
+            var initialData = {{ initial_data|safe }};
+            console.log('Initial Data:', initialData);
+
+            // State to track filter values and view mode
+            var filterState = {
+                partFilter: 'All',
+                sizeFilter: 'All',
+                widthFilter: 'All',
+                depthFilter: 'All',
+                heightFilter: 'All',
+                viewMode: localStorage.getItem('datasheetViewMode') || 'list' // Default to list view, check localStorage
+            };
+
+            // Set initial active button based on viewMode
+            if (filterState.viewMode === 'grid') {
+                $('#grid-view-btn').addClass('active');
+                $('#list-view-btn').removeClass('active');
+            }
+
+            // Populate filter dropdowns
+            function populateFilters() {
+                // Part Number
+                if (initialData.filters.length > 2) {
+                    $('#part-filter').empty();
+                    initialData.filters.forEach(function(item) {
+                        $('#part-filter').append($('<option>').val(item).text(item));
+                    });
+                    $('#part-filter').val('All');
+                    $('.part-filter-container').show();
+                } else {
+                    $('.part-filter-container').hide();
+                }
+
+                // Size
+                if (initialData.sizefilters.length > 2) {
+                    $('#size-filter').empty();
+                    initialData.sizefilters.forEach(function(item) {
+                        $('#size-filter').append($('<option>').val(item).text(item));
+                    });
+                    $('#size-filter').val('All');
+                    $('.size-filter-container').show();
+                } else {
+                    $('.size-filter-container').hide();
+                }
+
+                // Width
+                if (initialData.widthfilters.length > 2) {
+                    $('#width-filter').empty();
+                    initialData.widthfilters.forEach(function(item) {
+                        $('#width-filter').append($('<option>').val(item).text(item));
+                    });
+                    $('#width-filter').val('All');
+                    $('.width-filter-container').show();
+                } else {
+                    $('.width-filter-container').hide();
+                }
+
+                // Depth
+                if (initialData.depthfilters.length > 2) {
+                    $('#depth-filter').empty();
+                    initialData.depthfilters.forEach(function(item) {
+                        $('#depth-filter').append($('<option>').val(item).text(item));
+                    });
+                    $('#depth-filter').val('All');
+                    $('.depth-filter-container').show();
+                } else {
+                    $('.depth-filter-container').hide();
+                }
+
+                // Height
+                if (initialData.heightfilters.length > 2) {
+                    $('#height-filter').empty();
+                    initialData.heightfilters.forEach(function(item) {
+                        $('#height-filter').append($('<option>').val(item).text(item));
+                    });
+                    $('#height-filter').val('All');
+                    $('.height-filter-container').show();
+                } else {
+                    $('.height-filter-container').hide();
+                }
+            }
+
+            // Filter items based on current filter state
+            function filterItems() {
+                var filteredItems = initialData.items.filter(function(item) {
+                    var partMatch = filterState.partFilter === 'All' ||
+                                   (filterState.partFilter === 'Without Part Number' && !item.type) ||
+                                   (item.type && item.type.toString().toLowerCase() === filterState.partFilter.toString().toLowerCase());
+                    var sizeMatch = filterState.sizeFilter === 'All' ||
+                                   (filterState.sizeFilter === 'Without Size' && !item.size) ||
+                                   (item.size && item.size.toString().toLowerCase() === filterState.sizeFilter.toString().toLowerCase());
+                    var widthMatch = filterState.widthFilter === 'All' ||
+                                    (filterState.widthFilter === 'Without Width' && !item.width) ||
+                                    (item.width && item.width.toString().toLowerCase() === filterState.widthFilter.toString().toLowerCase());
+                    var depthMatch = filterState.depthFilter === 'All' ||
+                                    (filterState.depthFilter === 'Without Depth' && !item.depth) ||
+                                    (item.depth && item.depth.toString().toLowerCase() === filterState.depthFilter.toString().toLowerCase());
+                    var heightMatch = filterState.heightFilter === 'All' ||
+                                     (filterState.heightFilter === 'Without Height' && !item.height) ||
+                                     (item.height && item.height.toString().toLowerCase() === filterState.heightFilter.toString().toLowerCase());
+                    return partMatch && sizeMatch && widthMatch && depthMatch && heightMatch;
+                });
+
+                // Render filtered items
+                renderDatasheets(filteredItems);
+
+                // Update results counter
+                $('#results-count').text(filteredItems.length);
+                if (filteredItems.length > 0) {
+                    $('#results-counter').show();
+                    $('#no-results').hide();
+                } else {
+                    $('#results-counter').hide();
+                    $('#no-results').show();
+                }
+
+                // Update reset button visibility
+                var hasActiveFilters = filterState.partFilter !== 'All' ||
+                                      filterState.sizeFilter !== 'All' ||
+                                      filterState.widthFilter !== 'All' ||
+                                      filterState.depthFilter !== 'All' ||
+                                      filterState.heightFilter !== 'All';
+                $('#reset-filters').toggle(hasActiveFilters);
+
+                // Debug output
+                $('#debug-filtered-items').text(JSON.stringify(filteredItems, null, 2));
+                $('#debug-filters').text(JSON.stringify(filterState, null, 2));
+            }
+
+            // Render datasheets
+            function renderDatasheets(items) {
+                $('#datasheet-list').empty();
+                // Remove or add grid-view class based on viewMode
+                $('#datasheet-list').removeClass('grid-view').addClass(filterState.viewMode === 'grid' ? 'grid-view' : '');
+
+                items.forEach(function(item) {
+                    var includeSizeDimensions = item.include_size_dimensions || true;
+                    var html = `
+                        <div class="datasheet-item mb-3">
+                            <div class="datasheet-row shadow-sm p-4">
+                                <div class="${filterState.viewMode === 'grid' ? 'd-flex flex-column h-100' : 'd-flex flex-column flex-md-row align-items-md-center justify-content-between'}">
+                                    <div class="datasheet-name mb-3 ${filterState.viewMode === 'grid' ? '' : 'mb-md-0'}">
+                                        <i class="fas fa-file-pdf me-2 text-primary"></i>
+                                        <span>${item.ProductDescription}</span>
+                                        ${item.type && item.include_part_number ? '' : ''}
+                                    </div>
+                                    <div class="datasheet-description">
+                                        ${item.description || item.ProductDescription}
+                                        ${includeSizeDimensions && (item.size || item.width || item.depth || item.height) ? `
+                                            <div class="small text-muted mt-2">
+                                                ${item.size ? `<div>Size: <span>${item.size}</span></div>` : ''}
+                                                ${(item.width || item.depth || item.height) ? `
+                                                    <div>Dimensions (WxDxH): 
+                                                        ${item.width ? `<span>${item.width}</span>` : ''}
+                                                        ${item.width && (item.depth || item.height) ? ' x ' : ''}
+                                                        ${item.depth ? `<span>${item.depth}</span>` : ''}
+                                                        ${(item.width || item.depth) && item.height ? ' x ' : ''}
+                                                        ${item.height ? `<span>${item.height}</span>` : ''}
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    <div class="datasheet-action d-flex ${filterState.viewMode === 'grid' ? 'flex-column gap-2 mt-3' : 'flex-column flex-md-row gap-2'}">
+                                        ${item.pdfpath ? `
+                                            <a class="btn btn-primary btn-sm ${filterState.viewMode === 'grid' ? 'w-100' : 'me-2'}" href="${item.pdfpath}" target="_blank" aria-label="Download datasheet for ${item.ProductDescription}">
+                                                </i>Download
+                                            </a>
+                                        ` : ''}
+                                        ${item.isAuthenticated ? `
+                                            <button class="buy-now position-relative btn btn-primary btn-sm add-to-list-trigger ${filterState.viewMode === 'grid' ? 'w-100' : ''}" onclick="show(this)" data-product-id="${item.product_id}" data-datasheet-id="${item.id}" data-datasheet-name="${item.ProductDescription}">
+                                                <span>Add To List</span>
+                                                <div class="show-box" style="display:none">
+                                                    <ul style="max-height: 150px; overflow-y: auto;">
+                                                        ${item.user_lists && item.user_lists.length > 0 ? item.user_lists.map(list => `
+                                                            <li>
+                                                                <label class="form-check-label">
+                                                                    <input type="checkbox" class="list-checkbox" id="list-${list.id}" name="user_list" value="${list.id}">
+                                                                    ${list.name}
+                                                                </label>
+                                                            </li>
+                                                        `).join('') : `
+                                                            <li>No lists available. Create a new list below.</li>
+                                                        `}
+                                                    </ul>
+                                                    <div class="box-bottom">
+                                                        <a href="javascript:void(0);" class="p-btn add-to-list-btn">Add To List</a>
+                                                        <a href="javascript:void(0);" class="list-v create-new-list-link">Create New List</a>
+                                                        <a href="${item.view_lists_url}" class="list-v">View my lists</a>
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        ` : `
+                                            <button class="buy-now position-relative btn btn-primary btn-sm ${filterState.viewMode === 'grid' ? 'w-100' : ''}" data-bs-toggle="modal" data-bs-target="#signModal">
+                                                <span>Add To List</span>
+                                            </button>
+                                        `}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    $('#datasheet-list').append(html);
+                });
+            }
+
+            // Initialize
+            populateFilters();
+            filterItems();
+
+            // Event handlers for filter changes
+            $('#part-filter').on('change', function() {
+                filterState.partFilter = $(this).val();
+                filterItems();
+            });
+
+            $('#size-filter').on('change', function() {
+                filterState.sizeFilter = $(this).val();
+                filterItems();
+            });
+
+            $('#width-filter').on('change', function() {
+                filterState.widthFilter = $(this).val();
+                filterItems();
+            });
+
+            $('#depth-filter').on('change', function() {
+                filterState.depthFilter = $(this).val();
+                filterItems();
+            });
+
+            $('#height-filter').on('change', function() {
+                filterState.heightFilter = $(this).val();
+                filterItems();
+            });
+
+            // Reset filters
+            $('#reset-filters, #reset-filters-link').on('click', function(e) {
+                e.preventDefault();
+                filterState.partFilter = 'All';
+                filterState.sizeFilter = 'All';
+                filterState.widthFilter = 'All';
+                filterState.depthFilter = 'All';
+                filterState.heightFilter = 'All';
+                $('#part-filter').val('All');
+                $('#size-filter').val('All');
+                $('#width-filter').val('All');
+                $('#depth-filter').val('All');
+                $('#height-filter').val('All');
+                filterItems();
+            });
+
+            // View toggle event handlers
+            $('#list-view-btn').on('click', function() {
+                filterState.viewMode = 'list';
+                localStorage.setItem('datasheetViewMode', 'list');
+                $('#list-view-btn').addClass('active');
+                $('#grid-view-btn').removeClass('active');
+                filterItems();
+            });
+
+            $('#grid-view-btn').on('click', function() {
+                filterState.viewMode = 'grid';
+                localStorage.setItem('datasheetViewMode', 'grid');
+                $('#grid-view-btn').addClass('active');
+                $('#list-view-btn').removeClass('active');
+                filterItems();
+            });
+
+            console.log('Filters initialized with state:', filterState);
+        } catch (e) {
+            console.error('Error initializing datasheets:', e);
+            $('#datasheet-list').html('<div class="alert alert-danger">Error: Datasheet data not loaded.</div>');
+        }
+    });
+</script>
+{% endblock %}

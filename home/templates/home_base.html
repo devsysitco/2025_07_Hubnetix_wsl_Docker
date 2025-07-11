@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{% block meta_description %}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% endblock %}">
+    {% block canonical_url %}{% endblock %}
+
+    <title>{% block title %}hubnetix{% endblock %}</title>
+
+    <!-- Favicon -->
+     <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'assets/media/logo.svg' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'assets/media/logo.svg' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'assets/media/logo.svg' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'assets/media/logo.svg' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'assets/media/logo.svg' %}">
+
+    {% block base_css %}
+    <!-- Bootstrap CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Third-party CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+
+    <!-- Local CSS -->
+    <link rel="stylesheet" href="{% static 'home_assets/css/owlmin.css' %}">
+    <link rel="stylesheet" href="{% static 'home_assets/css/owltheme.css' %}">
+   
+    
+    
+    {% endblock %}
+
+    {% block extra_css %}{% endblock %}
+
+    {% block extra_header_js %}{% endblock %}
+
+</head>
+<body>
+
+    {% include 'home_header.html' %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include 'home_footer.html' %}
+
+    {% block base_js %}
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- jQuery UI -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
+    <!-- Swiper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Owl Carousel JS -->
+    <script src="{% static 'home_assets/js/owlcarousel.js' %}"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>    
+    {% endblock %}
+
+    {% block extra_js %}{% endblock %}
+   
+</body>
+</html>

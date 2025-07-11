@@ -1,0 +1,103 @@
+{% extends 'home_base.html' %}
+{% load static %}
+
+{% block meta_description %}This is a static meta description for this page.{% endblock %}
+{% block meta_keywords %}static, meta, keywords, example{% endblock %}
+{% block og_title %} NEWS | Hubnetix{% endblock %}
+{% block og_description %}This is a static Open Graph description for this page.{% endblock %}
+{% block og_image %}https://example.com/static-image.jpg{% endblock %}
+{% block title %} NEWS | Hubnetix{% endblock %}
+
+{% block content %}
+
+<style>
+    a:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+</style>
+
+<!-- Banner Section -->
+<section class="sub-banner-new">
+    <img class="full-width" src="{{ banner_url }}" alt="news">
+</section>
+
+<section class="latest-updates ">
+    <div class="container">
+        <div class="title-area border-0">
+            <nav>
+                <div class="nav nav-tabs news-tabs" id="nav-tab" role="tablist">
+                    <button class="nav-link active title" id="nav-news-tab" data-bs-toggle="tab" data-bs-target="#nav-news"
+                        type="button" role="tab" aria-controls="nav-news" aria-selected="true">News</button>
+                    <button class="nav-link title" id="nav-events-tab" data-bs-toggle="tab" data-bs-target="#nav-events"
+                        type="button" role="tab" aria-controls="nav-events" aria-selected="false">Events</button>
+                </div>
+            </nav>
+        </div>
+        <div class="tab-content" id="nav-tabContent">
+            <!-- News Tab -->
+            <div class="tab-pane fade show active" id="nav-news" role="tabpanel" aria-labelledby="nav-news-tab">
+                <div class="row g-3">
+                    {% for article in news_articles %}
+                    <div class="col-12">
+                        <a href="{% url 'home-news_detail' article.slug %}">
+                            <div class="blog-card flex-b-card">
+                                <div class="blog-img">
+                                    {% if article.featured_image %}
+                                        <img src="{{ article.featured_image.url }}" alt="{{ article.featured_image_alt }}" class="rounded-3">
+                                    {% else %}
+                                        <img src="{% static 'home_assets/media/default-image.png' %}" alt="{{ article.featured_image_alt }}" class="rounded-3">
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h3>{{ article.get_category_display }}</h3>
+                                    <h2>{{ article.title }}</h2>
+                                    <p>{{ article.short_description }}</p>
+                                    <p>{{ article.date_published|date:"d M, Y" }}</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <p>No news articles available.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+            </div>
+
+            <!-- Events Tab -->
+            <div class="tab-pane fade" id="nav-events" role="tabpanel" aria-labelledby="nav-events-tab">
+                <div class="row g-4">
+                    {% for article in event_articles %}
+                    <div class="col-12">
+                        <a href="{% url 'home-news_detail' article.slug %}">
+                            <div class="blog-card flex-b-card">
+                                <div class="blog-img">
+                                    {% if article.featured_image %}
+                                        <img src="{{ article.featured_image.url }}" alt="{{ article.featured_image_alt }}" class="rounded-3">
+                                    {% else %}
+                                        <img src="{% static 'home_assets/media/default-image.png' %}" alt="{{ article.featured_image_alt }}" class="rounded-3">
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h2>{{ article.title }}</h2>
+                                    <p>{{ article.short_description }}</p>
+                                    <p>{{ article.event_start_date|date:"d M, Y" }} - {{ article.event_end_date|date:"d M, Y" }}</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <p>No industry events available.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

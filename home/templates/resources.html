@@ -1,0 +1,167 @@
+{% extends 'home_base.html' %}
+{% load static %}
+
+{% block meta_description %}This is a static meta description for this page.{% endblock %}
+{% block meta_keywords %}static, meta, keywords, example{% endblock %}
+{% block og_title %} Resources | Hubnetix{% endblock %}
+{% block og_description %}This is a static Open Graph description for this page.{% endblock %}
+{% block og_image %}https://example.com/static-image.jpg{% endblock %}
+{% block title %} Resources | Hubnetix{% endblock %}
+
+{% block content %}
+
+
+<style>
+    a:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+    a {
+  color: inherit;  /* Inherit the color from the parent element */
+    }
+
+</style>
+
+<!-- Banner Section -->
+<section class="sub-banner-new">
+    <img class="full-width" src="{{ banner_url }}" alt="Resources">
+</section>
+
+<section class="latest-updates o-blog">
+  <div class="container">
+    <h2 class="title">Our Blogs</h2>
+    <p>Stay informed with our latest insights and initiatives focused on sustainable technology.</p>
+    <div class="row g-4 mt-3">
+      {% for post in blog_posts %}
+        <div class="col-4">
+          <a href="{% url 'home-blog_detail' slug=post.slug %}">
+            <div class="blog-card">
+              <div class="blog-img">
+                {% if post.featured_image %}
+                  <img src="{{ post.featured_image.url }}" alt="" class="rounded-3">
+                {% else %}
+                  <img src="{% static 'home_assets/media/default-image.png' %}" alt="" class="rounded-3">
+                {% endif %}
+              </div>
+              <h3>{{ post.get_category_display }}</h3> <!-- Display human-readable category -->
+              <h2>{{ post.title }}</h2>
+              <p>{{ post.short_description|safe }}</p> <!-- Truncate short description -->
+              <p>{{ post.author }} | {{ post.date_published|date:"d M, Y" }}</p>
+            </div>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+
+
+  <section class="e-books">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-6">
+          <h2 class="title">
+            Technical guides and e-books
+          </h2>
+          <p>Stay ahead with expert-curated resources for every product you need. Dive into detailed guides, e-books,
+            and
+            step-by-step instructions tailored to simplify usage and maximize performance.</p>
+          <a href="{% url 'home-e_books' %}"    class="km">View All Guides <i class="fa-solid fa-circle-arrow-right"></i></a>
+        </div>
+        <div class="col-6">
+          <div class="e-book ">
+            <img src="{% static 'home_assets/media/e-book.png' %}" alt="">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="question">
+    <div class="container">
+      <div class="row g-5">
+        <div class="col-6">
+          <h2 class="title">
+            Any Questions? <br> we got you
+          </h2>
+          <p>Find answers to the most common questions about our products, services, and solutions. If you need more
+            information, feel free to reach out to us anytime.</p>
+        </div>
+        <div class="col-6">
+          <div class="accordion-area">
+
+            <div class="acod-div">
+              <a class="acord-head" data-bs-toggle="collapse" href="#collapseExample" role="button"
+                aria-expanded="false" aria-controls="collapseExample" onclick="chev_rotate(this)">
+                Can Hubnetix provide customized solutions?
+              </a>
+              <i class="fa fa-chevron-right" aria-hidden="true"></i>
+            </div>
+            <div class="collapse" id="collapseExample">
+              <div class="c-body">
+                <p>Yes, we offer professional installation services to ensure optimal performance and seamless
+                  integration of our products into your infrastructure.</p>
+              </div>
+            </div>
+            <div class="acod-div">
+              <a class="acord-head" data-bs-toggle="collapse" href="#collapseExample2" role="button"
+                aria-expanded="false" aria-controls="collapseExample2" onclick="chev_rotate(this)">
+                Do you provide installation services for your products?
+              </a>
+              <i class="fa fa-chevron-right" aria-hidden="true"></i>
+            </div>
+            <div class="collapse" id="collapseExample2">
+              <div class="c-body">
+                <p>Yes, we offer professional installation services to ensure optimal performance and seamless
+                  integration of our products into your infrastructure.</p>
+              </div>
+            </div>
+            <div class="acod-div">
+              <a class="acord-head" data-bs-toggle="collapse" href="#collapseExample3" role="button"
+                aria-expanded="false" aria-controls="collapseExample3" onclick="chev_rotate(this)">
+                Does Hubnetix provide technical support?
+              </a>
+              <i class="fa fa-chevron-right" aria-hidden="true"></i>
+            </div>
+            <div class="collapse" id="collapseExample3">
+              <div class="c-body">
+                <p>Yes, we offer professional installation services to ensure optimal performance and seamless
+                  integration of our products into your infrastructure.</p>
+              </div>
+            </div>
+            <div class="acod-div">
+              <a class="acord-head" data-bs-toggle="collapse" href="#collapseExample4" role="button"
+                aria-expanded="false" aria-controls="collapseExample4" onclick="chev_rotate(this)">
+                What types of products does Hubnetix offer?
+              </a>
+              <i class="fa fa-chevron-right" aria-hidden="true"></i>
+            </div>
+            <div class="collapse" id="collapseExample4">
+              <div class="c-body">
+                <p>Yes, we offer professional installation services to ensure optimal performance and seamless
+                  integration of our products into your infrastructure.</p>
+              </div>
+            </div>
+
+            <div class="acod-div">
+              <a class="acord-head" data-bs-toggle="collapse" href="#collapseExample5" role="button"
+                aria-expanded="false" aria-controls="collapseExample5" onclick="chev_rotate(this)">
+                Does Hubnetix offer warranties on its products?
+              </a>
+              <i class="fa fa-chevron-right" aria-hidden="true"></i>
+            </div>
+            <div class="collapse" id="collapseExample5">
+              <div class="c-body">
+                <p>Yes, we offer professional installation services to ensure optimal performance and seamless
+                  integration of our products into your infrastructure.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+{% endblock %}

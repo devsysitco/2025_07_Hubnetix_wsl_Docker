@@ -1,0 +1,245 @@
+{% include 'admin_dashboard_base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+<style>
+    /* Job Listing Details Styling */
+    .job-listing-details-container {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .details-bar {
+        list-style-type: none;
+        padding: 0;
+    }
+    .details-bar li {
+        margin-bottom: 15px;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+    .details-bar li h4 {
+        color: #6c757d;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    .details-bar li h6 {
+        color: #333;
+    }
+
+    /* Image Gallery Styling */
+    .image-gallery {
+        margin-top: 20px;
+    }
+    .image-gallery .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+        margin-bottom: 15px;
+    }
+    .image-gallery .gallery-item:hover {
+        transform: scale(1.05);
+    }
+    .image-gallery img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+    .image-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.5);
+        color: white;
+        padding: 5px 10px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Job Listing Details</h4>
+                <h6>Comprehensive job listing information</h6>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="messages-container mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <!-- Determine Column Size Based on Additional Content Existence -->
+            {% if job_listing.additional_content %}
+            <div class="col-lg-8 col-sm-12">
+            {% else %}
+            <div class="col-lg-12 col-sm-12">
+            {% endif %}
+                <div class="card job-listing-details-container">
+                    <div class="card-body">
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-end mb-3">
+                            <a href="{% url 'admin_dashboard-job_listing_edit' job_listing.pk %}" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a href="#"
+                                class="btn btn-outline-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal"
+                                data-delete-url="{% url 'admin_dashboard-job_listing_delete' job_listing.pk %}"
+                                data-job-title="{{ job_listing.job_title }}">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </div>
+
+                        <!-- Job Listing Information List -->
+                        <ul class="details-bar">
+                            <li>
+                                <h4>Job Title</h4>
+                                <h6>{{ job_listing.job_title }}</h6>
+                            </li>
+                            <li>
+                                <h4>Department</h4>
+                                <h6>{{ job_listing.department }}</h6>
+                            </li>
+                            <li>
+                                <h4>Location</h4>
+                                <h6>{{ job_listing.job_location }}</h6>
+                            </li>
+                            <li>
+                                <h4>Date Posted</h4>
+                                <h6>{{ job_listing.date_posted }}</h6>
+                            </li>
+                            <li>
+                                <h4>Active Status</h4>
+                                {% if job_listing.active %}
+                                <p class="text-success">Active</p>
+                                {% else %}
+                                <p class="text-danger">Inactive</p>
+                                {% endif %}
+                            </li>
+
+                            <!-- New: Job Description -->
+                            <li>
+                                <h4>Job Description</h4>
+                                <div class="text-wrapper">
+                                    {% if job_listing.job_description %}
+                                        {{ job_listing.job_description|linebreaks }}
+                                    {% else %}
+                                        <p class="text-muted">No description provided</p>
+                                    {% endif %}
+                                </div>
+                            </li>
+
+                            <!-- New: Qualifications -->
+                            <li>
+                                <h4>Qualifications</h4>
+                                <div class="text-wrapper">
+                                    {% if job_listing.qualifications %}
+                                        {{ job_listing.qualifications|linebreaks }}
+                                    {% else %}
+                                        <p class="text-muted">No qualifications specified</p>
+                                    {% endif %}
+                                </div>
+                            </li>
+
+                            <!-- New: Application Link -->
+                            <li>
+                                <h4>Application Link</h4>
+                                {% if job_listing.application_link %}
+                                    <a href="{{ job_listing.application_link }}" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-external-link-alt"></i> Apply Now
+                                    </a>
+                                {% else %}
+                                    <p class="text-muted">No application link provided</p>
+                                {% endif %}
+                            </li>
+
+                            <!-- New: Application Instructions -->
+                            <li>
+                                <h4>Application Instructions</h4>
+                                <div class="text-wrapper">
+                                    {% if job_listing.application_instructions %}
+                                        {{ job_listing.application_instructions|linebreaks }}
+                                    {% else %}
+                                        <p class="text-muted">No application instructions provided</p>
+                                    {% endif %}
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {% if job_listing.additional_content %}
+            <!-- Content Gallery Column -->
+            <div class="col-lg-4 col-sm-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="image-gallery">
+                            <!-- Additional content or media can be added here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this job listing?
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="delete-form" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteForm = document.getElementById('delete-form');
+
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const deleteUrl = button.getAttribute('data-delete-url');
+        const jobTitle = button.getAttribute('data-job-title');
+
+        deleteForm.action = deleteUrl;
+        const modalBody = deleteModal.querySelector('.modal-body');
+        modalBody.textContent = `Are you sure you want to delete the job listing "${jobTitle}"?`;
+    });
+});
+</script> 
+{% endblock %}

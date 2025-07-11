@@ -1,0 +1,174 @@
+{% include 'seo_dashboard_base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css">
+<style>
+    
+    
+    /* SEO Section Styling */
+    .seo-product-container {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .seo-section {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .seo-section:last-child {
+        border-bottom: none;
+    }
+    .seo-section h5 {
+        color: #495057;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    .seo-field {
+        margin-bottom: 15px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .seo-key {
+        font-weight: 600;
+        color: #6c757d;
+        width: 200px;
+        margin-right: 10px;
+    }
+    .seo-value {
+        color: #212529;
+        flex: 1;
+    }
+    .snippet {
+        font-style: italic;
+        color: #495057;
+    }
+    .image-item {
+        margin-bottom: 20px;
+        position: relative;
+        display: block;
+    }
+    .image-container {
+        margin-bottom: 10px;
+        max-width: 300px;
+        overflow: hidden;
+        border-radius: 6px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .image-container img {
+        width: 100%;
+        height: auto;
+    }
+    .alt-text-overlay {
+        background-color: #f1f1f1;
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>SEO Product Overview</h4>
+                <h6>Key SEO & Image Information</h6>
+            </div>
+            <div class="action-buttons d-flex">
+                <a href="{% url 'seo_dashboard-products_list' %}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+                <a href="{% url 'seo_dashboard-product_edit' product.pk %}" class="btn btn-outline-primary">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="seo-product-container">
+                    <!-- SEO Information -->
+                    <div class="seo-section">
+                        <h5>SEO Metadata</h5>
+                        <div class="seo-field">
+                            <span class="seo-key">Product Name (SEF Slug):</span>
+                            <span class="seo-value">
+                                {{ product.name }} ({{ product.slug }})
+                            </span>
+                        </div>
+                        <div class="seo-field">
+                            <span class="seo-key">Meta Tags:</span>
+                            <span class="seo-value">{{ product.meta_tags|default:"Not provided" }}</span>
+                        </div>
+                        <div class="seo-field">
+                            <span class="seo-key">Meta Description:</span>
+                            <span class="seo-value">{{ product.meta_description|default:"Not provided" }}</span>
+                        </div>
+                        <div class="seo-field">
+                            <span class="seo-key">Canonical URL:</span>
+                            <span class="seo-value">{{ product.canonical_url|urlize|default:"Not provided" }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Descriptions -->
+                    <div class="seo-section">
+                        <h5>Product Content </h5>
+                        <div class="seo-field">
+                            <span class="seo-key">Short Description:</span>
+                            <div class="seo-value snippet">
+                                {{ product.short_description|default:"Not provided"|safe }}
+                            </div>
+                        </div>
+                        <div class="seo-field">
+                            <span class="seo-key">Detailed Description:</span>
+                            <div class="seo-value">
+                                {{ product.detailed_description|safe|linebreaks|default:"Not provided" }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Image Alt Tags -->
+                    <div class="seo-section">
+                        <h5>Image Alt Text Optimization</h5>
+                        
+                        <!-- Main Image -->
+                        {% if product.main_image %}
+                        <div class="seo-field image-item">
+                            <div class="image-container">
+                                <img src="{{ product.main_image.url }}" alt="Sample Image">
+                            </div>
+                            <div class="alt-text-overlay">
+                                <strong>Main Image Alt Text:</strong> {{ product.main_image_alt|default:"Missing Alt Text" }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Additional Images -->
+                        {% for image in product.images.all %}
+                        <div class="seo-field image-item">
+                            <div class="image-container">
+                                <img src="{{ image.product_image.url }}" class="img-fluid">
+                            </div>
+                            <div class="alt-text-overlay">
+                                <strong>Alt Text:</strong> {{ image.alt_text|default:"Missing Alt Text" }}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="seo-field">
+                            <span>No additional images</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+{% endblock %}

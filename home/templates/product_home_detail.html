@@ -1,0 +1,353 @@
+{% extends 'home_base.html' %}
+{% load static %}
+{% block meta_description %}{{ product.meta_description }}{% endblock %}
+{% block meta_keywords %}{{ product.meta_tags }}{% endblock %}
+{% block og_title %}{% if product.seo_name %}{{ product.seo_name }} | Hubnetix{% else %}{{ product.name }} | Hubnetix{% endif %}{% endblock %}
+{% block og_description %}{{ product.meta_description }}{% endblock %}
+{% block og_image %}{% if product.main_image %}{{ request.scheme }}://{{ request.get_host }}{{ product.main_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'home_assets/media/default-image.png' %}{% endif %}{% endblock %}
+{% block title %}{% if product.seo_name %}{{ product.seo_name }} | Hubnetix{% else %}{{ product.name }} | Hubnetix{% endif %}{% endblock %}
+{% block canonical_url %}<link rel="canonical" href="{% if product.canonical_url %}{{ product.canonical_url }}{% else %}{{ request.build_absolute_uri }}{% endif %}">{% endblock %}
+{% block content %}
+
+<style>
+    .list-popup {
+        display: none;
+        position: absolute;
+        background-color: white;
+        border: 1px solid #ddd;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        padding: 10px;
+        width: 220px;
+    }
+
+    .add-to-list-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        margin-top: 10px;
+        padding: 8px;
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+    }
+
+    .list-popup-content {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .list-actions {
+        margin-top: 10px;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+    }
+
+    .list-action-link {
+        display: block;
+        color: #007bff;
+        margin: 5px 0;
+    }
+
+    .form-check-label {
+        color: black;
+    }
+
+    .list-checkbox, .form-check-label {
+        cursor: default;
+    }
+</style>
+
+<!-- Banner Section -->
+<section class="product-detail">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-6">
+                <!-- Main Swiper -->
+                <div style="--swiper-navigation-color: #fff; --swiper-pagination-color: #fff" class="swiper mySwiper2">
+                    <div class="swiper-wrapper">
+                        <!-- Main image -->
+                        <div class="swiper-slide">
+                            {% if product.main_image %}
+                                <img src="{{ product.main_image.url }}" 
+                                     alt="{{ product.main_image_alt|default:product.name }}" />
+                            {% else %}
+                                <img src="{% static 'home_assets/media/default-image.png' %}" 
+                                     alt="{{ product.name }} - Default Image" />
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Additional images -->
+                        {% for image in product.images.all %}
+                        <div class="swiper-slide">
+                            <img src="{{ image.product_image.url }}" 
+                                 alt="{{ image.alt_text|default:product.name }}" />
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Fallback if no images exist -->
+                        {% if not product.main_image and not product.images.all %}
+                        <div class="swiper-slide">
+                            <img src="{% static 'home_assets/media/default-image.png' %}" 
+                                 alt="{{ product.name|default:'No Image Available' }}" />
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
+                </div>
+                
+                <!-- Thumbnail Swiper -->
+                <div thumbsSlider="" class="swiper mySwiper gal-slider">
+                    <div class="swiper-wrapper">
+                        <!-- Main image thumbnail -->
+                        <div class="swiper-slide">
+                            {% if product.main_image %}
+                                <img src="{{ product.main_image.url }}" 
+                                     alt="{{ product.main_image_alt|default:product.name }} - Thumbnail" />
+                            {% else %}
+                                <img src="{% static 'home_assets/media/default-image.png' %}" 
+                                     alt="{{ product.name }} - Default Thumbnail" />
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Additional image thumbnails -->
+                        {% for image in product.images.all %}
+                        <div class="swiper-slide">
+                            <img src="{{ image.product_image.url }}" 
+                                 alt="{{ image.alt_text|default:product.name }} - Thumbnail {{ forloop.counter }}" />
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Fallback if no images exist -->
+                        {% if not product.main_image and not product.images.all %}
+                        <div class="swiper-slide">
+                            <img src="{% static 'home_assets/media/default-image.png' %}" 
+                                 alt="{{ product.name|default:'No Thumbnail Available' }}" />
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-6">
+                <div class="pro-area">
+                    <h4>
+                        {% for category in product.categories.all %}
+                            {{ category.name|upper }}{% if not forloop.last %} | {% endif %}
+                        {% endfor %}
+                    </h4>
+                    <h2>{{ product.name }}</h2>
+                    <h3>{{ product.short_description }}</h3>
+                    <p>{{ product.detailed_description|safe  }}</p>
+                    
+                    {% if request.session.customerid %}
+                    <button class="buy-now position-relative add-to-list-trigger" onclick="show(this)" data-product-id="{{ product.id }}">
+                        <span>Add To List</span>
+                        <div class="show-box" style="display:none">
+                            <ul style="max-height: 150px; overflow-y: auto;">
+                                {% for user_list in user_lists %}
+                                <li>
+                                    <label class="form-check-label" onclick="event.stopPropagation();">
+                                        <input type="checkbox" class="list-checkbox" id="list-{{ user_list.id }}" name="user_list" value="{{ user_list.id }}" onclick="event.stopPropagation();">
+                                        {{ user_list.name }}
+                                    </label>
+                                </li>
+                                {% empty %}
+                                <li>No lists available. Create a new list below.</li>
+                                {% endfor %}
+                            </ul>
+                            <div class="box-bottom">
+                                <a href="javascript:void(0);" class="p-btn add-to-list-btn">Add To List</a>
+                                <a href="javascript:void(0);" class="list-v create-new-list-link">Create New List</a>
+                                <a href="{% url 'home_list' %}" class="list-v">View my lists</a>
+                            </div>
+                        </div>
+                    </button>
+                    {% else %}
+                    <button class="buy-now position-relative" data-bs-toggle="modal" data-bs-target="#signModal">
+                        <span>Add To List</span>
+                    </button>
+                    {% endif %}
+                    
+                    <div class="detail-area">
+                        <!-- Specifications section -->
+                        {% for spec in product.specifications.all %}
+                                <h2>{{ spec.specification_title }}</h2>
+                                <ul>{{ spec.specification |safe   }}</ul>
+                        {% endfor %}
+
+                        <!-- Documents section -->
+                        {% for doc_type, documents in documents_by_type.items %}
+                        <h2>{{ doc_type }}</h2>
+                        <ul>
+                        <div class="row">
+                            {% for doc in documents %}
+                                <div class="col-md-4">
+                                    <a href="{% url 'admin_dashboard-download_document' doc.pk %}" class="ds" target="_blank" rel="noopener noreferrer">
+                                        <i class="fa-regular fa-file-pdf"></i> DataSheet-{{ forloop.counter }}
+                                    </a>
+                                </div>
+                                {% if forloop.counter|divisibleby:3 and not forloop.last %}
+                                    </div><div class="row mt-3">
+                                {% endif %}
+                            {% endfor %}
+                        </div></ul>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+<section class="req-quote">
+    <div class="container">
+      <h2 class="title">
+        Request a Quote
+      </h2>
+      <div class="flex-area">
+        <p>Looking for tailored solutions to meet your specific needs? Contact us for a personalized quote.</p>
+        <a href="
+          " class="box-btn" data-bs-toggle="modal" data-bs-target="#exampleModalquote">Request a Quote</a>
+      </div>
+    </div>
+  </section>
+
+
+<!-- quote modal -->
+<div class="modal fade" id="exampleModalquote" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal-dialog">
+    <div class="modal-content">
+
+    <div class="modal-body position-relative">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h2 class="title">
+            Request a Quote
+        </h2>
+        <p>Submit your inquiry and let us assist you.</p>
+        <form id="quoteRequestForm" method="POST">
+            {% csrf_token %}
+            <div class="input-area-contact">
+                <!-- Hidden product ID field -->
+                <input type="hidden" name="product" id="product" value="{{ product.id }}">
+                
+                <!-- Disabled product name field -->
+                <div class="inp-grp">
+                    <input type="text" name="product_name" id="product_name" value="{{ product.name }}" readonly>
+                </div>
+                
+                <div class="inp-grp">
+                    <input type="text" name="full_name" id="full_name" placeholder="Your Full Name" required>
+                </div>
+                <div class="inp-grp">
+                    <input type="email" name="email" id="email" placeholder="Your Email" required>
+                </div>
+                <div class="inp-grp">
+                    <input type="tel" name="phone" id="phone" placeholder="Your Phone" required>
+                </div>
+                <div class="inp-grp">
+                    <textarea name="message" id="message" placeholder="Your Message" rows="3" required></textarea>
+                </div>
+            </div>
+            <button class="buy-now d-inline" type="submit">
+                <span>Submit</span>
+            </button>
+            <a href="#" class="box-btn" data-bs-dismiss="modal">Cancel</a>
+        </form>       
+    </div>
+    </div>
+</div>
+</div>
+
+{% include 'product_home_list_modal.html' %}
+
+{% endblock %}
+{% block extra_js %}
+<!-- Add Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+<script>
+    var swiper = new Swiper(".mySwiper", {
+        spaceBetween: 10,
+        slidesPerView: 4,
+        freeMode: true,
+        watchSlidesProgress: true,
+    });
+    
+    var swiper2 = new Swiper(".mySwiper2", {
+        spaceBetween: 10,
+        navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+        },
+        thumbs: {
+            swiper: swiper,
+        },
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        $('#quoteRequestForm').on('submit', function(e) {
+            e.preventDefault();
+
+            // Show loading state
+            Swal.fire({
+                title: 'Submitting...',
+                html: 'Please wait a moment....',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: '{% url "home-request_quote" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Request Submitted!',
+                            text: response.message,
+                            confirmButtonColor: '#c53847',
+                            timer: 3000,
+                            timerProgressBar: true
+                        }).then(() => {
+                            // Reset the form and close the modal
+                            $('#quoteRequestForm')[0].reset();
+                            $('#exampleModalquote').modal('hide');
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        var errors = xhr.responseJSON.errors;
+                        var errorMessage = Object.values(errors).flat().join('\n');
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: errorMessage,
+                            confirmButtonColor: '#c53847'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'An error occurred. Please try again.',
+                            confirmButtonColor: '#c53847'
+                        });
+                    }
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

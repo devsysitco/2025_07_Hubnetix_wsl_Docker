@@ -1,0 +1,316 @@
+{% include 'admin_dashboard_base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+<style>
+    /* Product Details Styling */
+    .product-details-container {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .product-bar {
+        list-style-type: none;
+        padding: 0;
+    }
+    .product-bar li {
+        margin-bottom: 15px;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+    .product-bar li h4 {
+        color: #6c757d;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    .product-bar li h6 {
+        color: #333;
+    }
+
+    /* Image Gallery Styling */
+    .product-image-gallery {
+        margin-top: 20px;
+    }
+    .product-image-gallery .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+        margin-bottom: 15px;
+    }
+    .product-image-gallery .gallery-item:hover {
+        transform: scale(1.05);
+    }
+    .product-image-gallery img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+    .image-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.5);
+        color: white;
+        padding: 5px 10px;
+        text-align: center;
+    }
+
+    /* Specification Table Styling */
+    .specification-table {
+        margin-top: 20px;
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .specification-table th, .specification-table td {
+        border: 1px solid #e0e0e0;
+        padding: 10px;
+        text-align: left;
+    }
+    .specification-table th {
+        background-color: #f1f1f1;
+        font-weight: 600;
+    }
+    .specification-highlight {
+        font-weight: bold;
+        color: #333;
+        background-color: #f9f9f9;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Product Details</h4>
+                <h6>Comprehensive product information</h6>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="messages-container mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <!-- Determine Column Size Based on Image Existence -->
+            {% if product.main_image or product.images.count > 0 %}
+            <div class="col-lg-8 col-sm-12">
+            {% else %}
+            <div class="col-lg-12 col-sm-12">
+            {% endif %}
+                <div class="card product-details-container">
+                    <div class="card-body">
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-end mb-3">
+                            <a href="{% url 'admin_dashboard-product_edit' product.pk %}" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a href="#" 
+                               class="btn btn-outline-danger" 
+                               data-bs-toggle="modal" 
+                               data-bs-target="#deleteModal"
+                               data-delete-url="{% url 'admin_dashboard-product_delete' product.pk %}"
+                               data-product-name="{{ product.name }}">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </div>
+
+                        <!-- Product Information List -->
+                        <ul class="product-bar mt-4">
+                            <li>
+                                <h4>Product Name</h4>
+                                <h6>{{ product.name }}</h6>
+                            </li>
+                            <li>
+                                <h4>Categories</h4>
+                                <h6>
+                                    {% for category in product.categories.all %}
+                                    <a href="{% url 'admin_dashboard-category_details' pk=category.pk %}" class="badge bg-primary me-1">
+                                        {{ category.name }}
+                                    </a>
+                                    {% endfor %}
+                                </h6>
+                            </li>
+                            <li>
+                                <h4>Short Description</h4>
+                                <h6>{{ product.short_description|default:"Not provided" }}</h6>
+                            </li>
+                            <li>
+                                <h4>Detailed Description</h4>
+                                <h6>{{ product.detailed_description | safe | default:"Not provided" }}</h6>
+                            </li>
+                            <li>
+                                <h4>Quantity in Stock</h4>
+                                <h6>{{ product.quantity_in_stock }}</h6>
+                            </li>
+                            <li>
+                                <h4>Measurement</h4>
+                                <h6>{{ product.measurement|default:"Not specified" }}</h6>
+                            </li>
+                            <li>
+                                <h4>Product Status</h4>
+                                <h6>
+                                    {% if product.is_latest %}
+                                    <span class="badge bg-success me-2">
+                                        Latest Product
+                                        {% if product.latest_marked_at %}
+                                        (Since: {{ product.latest_marked_at|date:"Y-m-d H:i:s" }} UTC)
+                                        {% endif %}
+                                    </span>
+                                    {% endif %}
+                                    
+                                    {% if product.is_featured %}
+                                    <span class="badge bg-info">
+                                        Featured Product
+                                        {% if product.featured_marked_at %}
+                                        (Since: {{ product.featured_marked_at|date:"Y-m-d H:i:s" }} UTC)
+                                        {% endif %}
+                                    </span>
+                                    {% endif %}
+                                    
+                                    {% if not product.is_latest and not product.is_featured %}
+                                    <span class="badge bg-secondary">Standard Product</span>
+                                    {% endif %}
+                                </h6>
+                            </li>
+                        </ul>
+
+                        <!-- Specification Section -->
+                        <div class="mt-4">
+                            <h4>Specifications</h4>
+                            <table class="specification-table">
+                                <thead>
+                                    <tr>
+                                        <th class="specification-highlight">Specification Title</th>
+                                        <th>Specification</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for specification in product.specifications.all %}
+                                    <tr>
+                                        <td class="specification-highlight">{{ specification.specification_title }}</td>
+                                        <td>{{ specification.specification | safe }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Documents Section -->
+                        <div class="mt-4">
+                            <h4>Documents</h4>
+                            {% for doc_type, documents in documents_by_type.items %}
+                            <h6 class="mt-2">{{ doc_type|title }}</h6>
+                            {% for doc in documents %}
+                            <a href="{% url 'admin_dashboard-download_document' doc.pk %}" class="d-block">
+                                {{ doc.title }}
+                            </a>
+                            {% endfor %}
+                            {% empty %}
+                            <p>No documents available.</p>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Additional Product Information -->
+                        <ul class="product-bar mt-4">
+                            
+                            <li>
+                                <h4>Created At</h4>
+                                <h6>{{ product.created_at|date:"F d, Y H:i" }}</h6>
+                            </li>
+            
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {% if product.main_image or product.images.count > 0 %}
+            <!-- Image Gallery Column -->
+            <div class="col-lg-4 col-sm-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="product-image-gallery">
+                            {% if product.main_image %}
+                            <div class="gallery-item">
+                                <a href="{{ product.main_image.url }}" data-fancybox="product-gallery" data-caption="Main Image">
+                                    <img src="{{ product.main_image.url }}" alt="Main Image">
+                                    <div class="image-label">Main Image</div>
+                                </a>
+                            </div>
+                            {% endif %}
+
+                            {% for image in product.images.all %}
+                            <div class="gallery-item">
+                                <a href="{{ image.product_image.url }}" data-fancybox="product-gallery" data-caption="Additional Image {{ forloop.counter }}">
+                                    <img src="{{ image.product_image.url }}" alt="Additional Image {{ forloop.counter }}">
+                                    <div class="image-label">Image {{ forloop.counter }}</div>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this product?
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="delete-form" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteForm = document.getElementById('delete-form');
+
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const deleteUrl = button.getAttribute('data-delete-url');
+        const productName = button.getAttribute('data-product-name');
+
+        deleteForm.action = deleteUrl;
+        const modalBody = deleteModal.querySelector('.modal-body');
+        modalBody.textContent = `Are you sure you want to delete the product "${productName}"?`;
+    });
+
+    Fancybox.bind('[data-fancybox]', {
+        loop: true
+    });
+});
+</script>
+{% endblock %}

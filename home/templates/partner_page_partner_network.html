@@ -1,0 +1,480 @@
+{% load static %}
+<div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab" tabindex="0">
+  <h2 class="title">
+    HUBNETIX Partner Network
+  </h2>
+  <p>HUBNETIX connects with reliable and trusted regional and global partners who can design, install and
+    deliver complete physical Infrastructure solutions for customers of all sizes. HUBNETIX Partner Network
+    (HPN) is focused on helping our customers to solve the most complex application delivery challenges and
+    ensure success which meets the needs of our customers. Through our professional approach, product portfolio
+    and integrated best-in-class solutions we provide the support to our partners to continually improve the
+    sales, development and tech deployment to boost productivity and profitability.</p>
+  
+  <!-- Search and Filter Section -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="search-container">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="search-input" id="locationSearch" placeholder="Search for partners by name or country...">
+      </div>
+    </div>
+    <div class="col-md-4">
+      <select class="form-select" id="officeTypeFilter">
+        <option value="">All Countries</option>
+        {% for country_value, country_display in office_types %}
+          <option value="{{ country_value }}">{{ country_display }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <select class="form-select" id="partnershipTypeFilter">
+        <option value="">All Partnership Types</option>
+        {% for partnership_value, partnership_display in partnership_types %}
+          <option value="{{ partnership_value }}">{{ partnership_display }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- Map and List Container -->
+  <div class="row">
+    <!-- Map Section -->
+    <div class="col-lg-7">
+      <div id="map"></div>
+      <div class="locations-count mt-2">
+        <span id="locationCounter">{{ office_locations.count }}</span> locations found
+      </div>
+    </div>
+
+    <!-- List Section -->
+    <div class="col-lg-5">
+      <div id="locationsList" class="location-list overflow-auto" style="max-height: 600px;">
+        {% for location in office_locations %}
+        <div class="place" data-type="{{ location.office_country }}" data-partnership="{{ location.partnership_type }}">
+          {% if location.image %}
+            <img src="{{ location.image.url }}" alt="{{ location.title }}" class="location-image">
+          {% else %}
+            <img src="{% static 'home_assets/media/markers/branch-marker.png' %}" alt="{{ location.title }}" class="location-marker">
+          {% endif %}
+          <div class="info">
+            <h3>{{ location.title }}
+              {% if location.partnership_type %}
+                <span class="partnership-badge partnership-{{ location.partnership_type|slugify }}">
+                  {{ location.partnership_type }}
+                </span>
+              {% endif %}
+              <span class="office-type-badge">{{ location.office_country }}</span>
+            </h3>
+            <p><i class="fas fa-map-marker-alt"></i> {{ location.address }}</p>
+            {% if location.phone %}
+            <p><i class="fas fa-phone"></i> {{ location.phone }}</p>
+            {% endif %}
+            {% if location.email %}
+            <p><i class="fas fa-envelope"></i> {{ location.email }}</p>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4">
+          <p>No office locations found.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Styles -->
+<style>
+  {% include 'partners_map_styles.html' %}
+  
+  /* Partnership Badge Styles */
+  .partnership-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  /* Strategic Partner - Premium Gold */
+  .partnership-strategic-partner {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    border: 1px solid #FFD700;
+  }
+  
+  /* Premier Partner - Premium Purple */
+  .partnership-premier-partner {
+    background: linear-gradient(135deg, #8A2BE2, #6A1B9A);
+    border: 1px solid #8A2BE2;
+  }
+  
+  /* Preferred Partner - Professional Blue */
+  .partnership-preferred-partner {
+    background: linear-gradient(135deg, #1E88E5, #1565C0);
+    border: 1px solid #1E88E5;
+  }
+  
+  /* Master Partner - Elite Red */
+  .partnership-master-partner {
+    background: linear-gradient(135deg, #E53935, #C62828);
+    border: 1px solid #E53935;
+  }
+  
+  /* General Partner - Standard Green */
+  .partnership-general-partner {
+    background: linear-gradient(135deg, #43A047, #2E7D32);
+    border: 1px solid #43A047;
+  }
+  
+  /* Responsive badge adjustments */
+  @media (max-width: 768px) {
+    .partnership-badge {
+      display: block;
+      margin-left: 0;
+      margin-top: 4px;
+      width: auto;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .office-type-badge {
+      display: block;
+      margin-left: 0;
+      margin-top: 4px;
+      width: auto;
+    }
+  }
+  
+  /* Info window partnership badge styles */
+  .info-window .partnership-badge {
+    margin-left: 0;
+    margin-top: 5px;
+    display: block;
+    width: fit-content;
+  }
+
+  /* Responsive filter adjustments */
+  @media (max-width: 992px) {
+    .search-container, .form-select {
+      margin-bottom: 10px;
+    }
+  }
+</style>
+
+<!-- Google Maps Integration -->
+<script>
+// Store map and markers globally
+let map;
+let markers = [];
+
+// Define default marker icon
+const defaultMarkerIcon = "{% static 'home_assets/media/markers/branch-marker.png' %}";
+
+// Location data from Django
+const locations = {{ office_locations_json|safe }};
+
+// Custom marker style
+function createCustomMarker(imageUrl = null) {
+  if (imageUrl) {
+    // Use office image as marker
+    return {
+      url: imageUrl,
+      scaledSize: new google.maps.Size(60, 60),
+      origin: new google.maps.Point(0, 0),
+      anchor: new google.maps.Point(30, 60)
+    };
+  } else {
+    // Use default marker icon
+    return {
+      url: defaultMarkerIcon,
+      scaledSize: new google.maps.Size(40, 40),
+      origin: new google.maps.Point(0, 0),
+      anchor: new google.maps.Point(20, 40)
+    };
+  }
+}
+
+// Function to generate partnership badge HTML for info window
+function getPartnershipBadgeHTML(partnershipType) {
+  if (!partnershipType) return '';
+  
+  const badgeClass = `partnership-${partnershipType.toLowerCase().replace(/\s+/g, '-')}`;
+  return `<span class="partnership-badge ${badgeClass}">${partnershipType}</span>`;
+}
+
+// Initialize map
+function initMap() {
+  // Check if we have locations
+  if (!locations || locations.length === 0) {
+    document.getElementById('map').innerHTML = '<div class="text-center py-5"><p>No office locations to display on map.</p></div>';
+    return;
+  }
+
+  // Create map instance - center on first location or default
+  const defaultCenter = locations.length > 0 ? 
+    { lat: parseFloat(locations[0].latitude), lng: parseFloat(locations[0].longitude) } :
+    { lat: 25.2048, lng: 55.2708 };
+
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: defaultCenter,
+    zoom: locations.length === 1 ? 10 : 2,
+    styles: [
+      {
+        featureType: "all",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#333333" }]
+      },
+      {
+        featureType: "water",
+        elementType: "geometry",
+        stylers: [{ color: "#e9e9e9" }]
+      },
+      {
+        featureType: "landscape",
+        elementType: "geometry",
+        stylers: [{ color: "#f5f5f5" }]
+      }
+    ],
+    mapTypeControl: false,
+    fullscreenControl: false,
+    streetViewControl: false
+  });
+
+  // Info window for markers
+  const infoWindow = new google.maps.InfoWindow();
+
+  // Create markers
+  locations.forEach((location, index) => {
+    // Validate coordinates
+    const lat = parseFloat(location.latitude);
+    const lng = parseFloat(location.longitude);
+    
+    if (isNaN(lat) || isNaN(lng)) {
+      console.warn(`Invalid coordinates for location: ${location.title}`);
+      return;
+    }
+
+    const marker = new google.maps.Marker({
+      position: { lat: lat, lng: lng },
+      map: map,
+      title: location.title,
+      icon: createCustomMarker(location.image),
+      animation: google.maps.Animation.DROP
+    });
+
+    markers.push(marker);
+
+    // Create info window content with partnership badge
+    const partnershipBadge = location.partnership_type ? getPartnershipBadgeHTML(location.partnership_type) : '';
+    const content = `
+      <div class="info-window">
+        ${location.image ? `<img src="${location.image}" alt="${location.title}" style="width: 100%; max-width: 180px; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">` : ''}
+        <h3>${location.title}</h3>
+        <p><i class="fas fa-globe"></i> ${location.office_country}</p>
+        ${partnershipBadge}
+        <p><i class="fas fa-map-marker-alt"></i> ${location.address}</p>
+        ${location.phone ? `<p><i class="fas fa-phone"></i> <a href="tel:${location.phone}" style="color: #007bff; text-decoration: none;">${location.phone}</a></p>` : ''}
+        ${location.email ? `<p><i class="fas fa-envelope"></i> <a href="mailto:${location.email}" style="color: #007bff; text-decoration: none;">${location.email}</a></p>` : ''}
+      </div>
+    `;
+
+    // Add click listener to marker
+    marker.addListener("click", () => {
+      infoWindow.setContent(content);
+      infoWindow.open(map, marker);
+      highlightLocation(index);
+    });
+  });
+
+  // Fit map to show all markers if multiple locations
+  if (locations.length > 1) {
+    const bounds = new google.maps.LatLngBounds();
+    locations.forEach(location => {
+      const lat = parseFloat(location.latitude);
+      const lng = parseFloat(location.longitude);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        bounds.extend({ lat: lat, lng: lng });
+      }
+    });
+    map.fitBounds(bounds);
+  }
+
+  // Add click handlers to location list items
+  setupLocationListHandlers();
+
+  // Setup search and filter handlers
+  setupSearchAndFilter();
+
+  // Initial count update
+  updateLocationCount();
+}
+
+// Setup location list click handlers
+function setupLocationListHandlers() {
+  const locationsList = document.getElementById('locationsList');
+  const places = locationsList.getElementsByClassName('place');
+
+  Array.from(places).forEach((place, index) => {
+    place.addEventListener('click', () => {
+      highlightLocation(index);
+    });
+  });
+}
+
+// Highlight selected location
+function highlightLocation(index) {
+  const places = document.getElementsByClassName('place');
+  
+  // Remove active class from all places
+  Array.from(places).forEach(p => p.classList.remove('active'));
+  
+  // Add active class to selected place if it exists
+  if (places[index]) {
+    places[index].classList.add('active');
+
+    // Center map on selected location
+    const lat = parseFloat(locations[index].latitude);
+    const lng = parseFloat(locations[index].longitude);
+    
+    if (!isNaN(lat) && !isNaN(lng)) {
+      map.panTo({ lat: lat, lng: lng });
+      map.setZoom(15);
+    }
+
+    // Animate marker
+    if (markers[index]) {
+      markers[index].setAnimation(google.maps.Animation.BOUNCE);
+      setTimeout(() => {
+        markers[index].setAnimation(null);
+      }, 1500);
+    }
+
+    // Scroll location into view
+    places[index].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+// Setup search and filter functionality
+function setupSearchAndFilter() {
+  const searchInput = document.getElementById('locationSearch');
+  const officeTypeFilter = document.getElementById('officeTypeFilter');
+  const partnershipTypeFilter = document.getElementById('partnershipTypeFilter');
+
+  // Add event listeners
+  searchInput.addEventListener('input', filterLocations);
+  officeTypeFilter.addEventListener('change', filterLocations);
+  partnershipTypeFilter.addEventListener('change', filterLocations);
+}
+
+// Filter locations based on search, country, and partnership type criteria
+function filterLocations() {
+  const searchInput = document.getElementById('locationSearch');
+  const officeTypeFilter = document.getElementById('officeTypeFilter');
+  const partnershipTypeFilter = document.getElementById('partnershipTypeFilter');
+  const places = document.getElementsByClassName('place');
+  
+  const searchTerm = searchInput.value.toLowerCase();
+  const selectedCountry = officeTypeFilter.value;
+  const selectedPartnership = partnershipTypeFilter.value;
+  let visibleCount = 0;
+  let visibleMarkerIndices = [];
+
+  // Filter locations
+  Array.from(places).forEach((place, index) => {
+    if (index >= locations.length) return;
+    
+    const locationInfo = locations[index];
+    const placeCountry = locationInfo.office_country;
+    const placePartnership = locationInfo.partnership_type;
+    
+    const matchesSearch = locationInfo.title.toLowerCase().includes(searchTerm) ||
+                         locationInfo.address.toLowerCase().includes(searchTerm) ||
+                         locationInfo.office_country.toLowerCase().includes(searchTerm);
+    const matchesCountry = !selectedCountry || placeCountry === selectedCountry;
+    const matchesPartnership = !selectedPartnership || placePartnership === selectedPartnership;
+
+    if (matchesSearch && matchesCountry && matchesPartnership) {
+      place.style.display = '';
+      if (markers[index]) {
+        markers[index].setMap(map);
+        visibleMarkerIndices.push(index);
+      }
+      visibleCount++;
+    } else {
+      place.style.display = 'none';
+      if (markers[index]) {
+        markers[index].setMap(null);
+      }
+    }
+  });
+
+  // Update counter and map bounds
+  updateLocationCount(visibleCount);
+  updateMapBounds(visibleMarkerIndices);
+}
+
+// Update location counter
+function updateLocationCount(count = null) {
+  const locationCounter = document.getElementById('locationCounter');
+  if (count === null) {
+    count = document.querySelectorAll('.place:not([style*="display: none"])').length;
+  }
+  locationCounter.textContent = count;
+}
+
+// Update map bounds to show all visible markers
+function updateMapBounds(visibleIndices = null) {
+  if (!map) return;
+  
+  const bounds = new google.maps.LatLngBounds();
+  let hasVisibleMarkers = false;
+
+  if (visibleIndices) {
+    visibleIndices.forEach(index => {
+      if (markers[index]) {
+        bounds.extend(markers[index].getPosition());
+        hasVisibleMarkers = true;
+      }
+    });
+  } else {
+    markers.forEach((marker, index) => {
+      if (marker.getMap() !== null) {
+        bounds.extend(marker.getPosition());
+        hasVisibleMarkers = true;
+      }
+    });
+  }
+
+  if (hasVisibleMarkers) {
+    map.fitBounds(bounds);
+    if (map.getZoom() > 15) map.setZoom(15);
+  }
+}
+
+// Add error handling for Google Maps
+function handleMapError() {
+  const mapDiv = document.getElementById('map');
+  mapDiv.innerHTML = `
+    <div class="map-error">
+      <i class="fas fa-exclamation-triangle"></i>
+      <p>Sorry, there was an error loading the map. Please try refreshing the page.</p>
+    </div>
+  `;
+}
+
+// Initialize map when page loads
+window.addEventListener('load', function() {
+  setTimeout(initMap, 100);
+});
+</script>
+
+<!-- Load Google Maps API -->
+<script async defer
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzA-206XMmmD99RVU_6rn7WcAhKtWZO8s&callback=initMap&onerror=handleMapError">
+</script>

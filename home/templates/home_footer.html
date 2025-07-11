@@ -1,0 +1,165 @@
+{% load static %}
+<style>
+    /* Fix: Make newsletter input text visible */
+    .f-search input[type="email"] {
+        color: white;  /* Ensures text is visible */
+        
+    }
+
+    /* Fix: Style send button */
+    .f-search button {
+        background: none;
+        border: none;
+        cursor: pointer;
+    } 
+</style>
+
+
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-3">
+                <a href="{% url 'home-page' %}">
+                    <div class="f-logo">
+                        <img src="{% static 'home_assets/media/logo_footer.svg' %}" alt="">
+                    </div>
+                </a>
+            </div>            
+            <div class="col">
+                <h3 class="f-link">Products</h3>
+                <ul class="flinks">
+                    <li><a href="{% url 'user_account-category_by_id' 1 %}">Lanline</a></li>
+                    <li><a href="{% url 'user_account-category_by_id' 2 %}">Cabline</a></li>
+                    <li><a href="{% url 'user_account-category_by_id' 4 %}">Actline</a></li>
+                    <li><a href="{% url 'user_account-category_by_id' 3 %}">Powline</a></li>
+                    <li><a href="{% url 'user_account-category_by_id' 5 %}">Secline</a></li>
+                </ul>
+            </div>
+            <div class="col">
+                <h3 class="f-link">Quick Links</h3>
+                <ul class="flinks">
+                    <li><a href="{% url 'home-page' %}">Home</a></li>
+                    <li><a href="{% url 'home-about' %}">About Us</a></li>
+                    <li><a href="{% url 'home-resources' %}">Resources</a></li>
+                    <li><a href="{% url 'home-news' %}">News</a></li>
+                </ul>
+            </div>
+            <div class="col">
+                <h3 class="f-link">Company</h3>
+                <ul class="flinks">
+                    <li><a href="{% url 'home-contact' %}">Contact Us</a></li>
+                    <li><a href="{% url 'home-careers' %}">Careers</a></li>
+                    <li><a href="{% url 'home-support' %}">Support</a></li>
+                    <li><a href="{% url 'home-partners' %}">Partners</a></li>
+                </ul>
+            </div>
+            <div class="col-4">
+                <h3 class="f-link">Stay Connected</h3>
+                <ul class="flinks">
+                    <li><a href="#">Subscribe to our newsletter for updates</a></li>
+                    <li>
+                        <form id="newsletterForm" method="POST">
+                            {% csrf_token %}
+                            <div class="f-search">
+                                <input type="email" name="email" id="newsletter_email" placeholder="Email address" required>
+                                <button type="submit" class="send">
+                                    <img src="{% static 'home_assets/media/send.png' %}" alt="">
+                                </button>
+                            </div>
+                        </form>
+                    </li>
+                    <li>
+                        <ul class="soci">
+                            <li><a href="" target="_blank"><img src="{% static 'home_assets/media/Instagram (1).png' %}" alt=""></a></li>
+                            <li><a href="" target="_blank"><img src="{% static 'home_assets/media/Facebook.png' %}" alt=""></a></li>
+                            <li><a href="" target="_blank"><img src="{% static 'home_assets/media/linkedin.png' %}" alt=""></a></li>
+                            <li><a href="" target="_blank"><img src="{% static 'home_assets/media/Instagram.png' %}" alt=""></a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            
+        </div>
+        <div class="f-bottom">
+            <div>
+                <a href="{% url 'home-privacy' %}">Privacy</a>
+                <span> | </span>
+                <a href="{% url 'home-terms' %}">Terms of Use</a>
+                <span> | </span>
+                <a href="{% url 'account-login-page' %}">management(official)</a>
+            </div>
+            <div>
+                <p>© <span id="year"></span> Hubnetix Corporation. All rights reserved.</p>
+            </div>            
+        </div>
+    </div>
+</footer>
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#newsletterForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            Swal.fire({
+                title: 'Subscribing...',
+                html: 'Please wait a moment',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            var formData = new FormData(this);
+            
+            $.ajax({
+                url: '{% url "subscribe_newsletter" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if(response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Subscribed!',
+                            text: response.message,
+                            confirmButtonColor: '#c53847',
+                            timer: 3000,
+                            timerProgressBar: true
+                        }).then(() => {
+                            $('#newsletterForm')[0].reset();
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    if(xhr.responseJSON && xhr.responseJSON.errors) {
+                        var errors = xhr.responseJSON.errors;
+                        var errorMessage = Object.values(errors).flat().join('\n');
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: errorMessage,
+                            confirmButtonColor: '#c53847'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'An error occurred. Please try again.',
+                            confirmButtonColor: '#c53847'
+                        });
+                    }
+                }
+            });
+        });
+    });
+</script>
+<script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+{% endblock %}
+
+

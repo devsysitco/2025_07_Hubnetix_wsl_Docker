@@ -1,0 +1,153 @@
+{% extends 'home_base.html' %}
+{% load static %}
+
+{% block meta_description %}This is a static meta description for this page.{% endblock %}
+{% block meta_keywords %}static, meta, keywords, example{% endblock %}
+{% block og_title %} About Us | Hubnetix{% endblock %}
+{% block og_description %}This is a static Open Graph description for this page.{% endblock %}
+{% block og_image %}https://example.com/static-image.jpg{% endblock %}
+{% block title %} About Us | Hubnetix{% endblock %}
+
+
+{% block content %}
+
+
+<style>
+    a:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+</style>
+
+<section class="sub-banner-new">
+    <img class="full-width" src="{{ banner_url }}" alt="about us">
+</section>
+
+<section class="about-home position-relative about-pro">
+
+  <div class="container">
+    <div class="row g-5 ">
+      <div class="col-12">
+        <div class="text-center">
+          <h2 class="title">
+            From Expansion to Excellence
+          </h2>
+
+          <p>Over the years, following expansion into markets across the Middle East, Africa, and Asia, the company
+            has
+            built a strong reputation by focusing on key industrial sectors, ICT, system integrators, contractors,
+            government, healthcare, production, education, commercial enterprises, manufacturing, retail, public
+            sector,
+            transport, financial services, media, technology, and energy. With a commitment to innovation and
+            excellence, we continue to deliver cutting edge solutions.</p>
+
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="abt-img">
+          <img src="{% static 'home_assets/media/v-ban.png' %}" alt="" class="rounded-3">
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="text-center">
+          <h2 class="title">
+            Impact & Evolution
+          </h2>
+
+          <p>At HUBNETIX, we have achieved key milestones that showcase our dedication to growth, innovation, and
+            leadership. Our journey is driven by a commitment to delivering solutions that evolve with the needs of
+            our
+            clients and industries, strengthened by strong partnerships and trust.</p>
+          <ul class="ab-ul">
+            <li>
+              <img src="{% static 'home_assets/media/ab1.png' %}" alt=""> Global Presence
+            </li>
+            <li>
+              <img src="{% static 'home_assets/media/ab2.png' %}" alt=""> Client-Centric Approach
+            </li>
+            <li>
+              <img src="{% static 'home_assets/media/ab3.png' %}" alt=""> Sustainability Focus
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mis-vis">
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-6">
+        <div class="vm-box">
+          <div class="vm-head">
+            <h3>Our Mission</h3>
+            <p>The Communication Brand</p>
+          </div>
+          <div class="vm-body">
+            <p>To enable Hubnetix to emerge as a world-class corporate brand that values communication, quality and
+              reliability in the arena of ICT industry and client relations by collaborating with innovative minds,
+              exploring diverse markets and developing empowering product lines.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="vm-box">
+          <div class="vm-head">
+            <h3>Our Vision</h3>
+            <p>For a Knowledge society </p>
+          </div>
+          <div class="vm-body">
+            <p>To build a knowledge-driven society through innovative ICT solutions, delivering superior security
+              products, expert services, and professional consultancy for complete customer satisfaction and
+              Hubnetix's growth. We strive for excellence in every workplace.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="we-stand">
+  <div class="container">
+    <div class="text-center">
+      <h2 class="title">
+        What We Stand For
+      </h2>
+      <p>At HUBNETIX, our values define who we are and how we operate. They guide our mission to deliver exceptional
+        solutions, foster meaningful relationships, and drive innovation across industries.</p>
+    </div>
+    <div class="row mt-5">
+      <div class="col-4">
+        <div class="we-box">
+          <div class="we-ico">
+            <img src="{% static 'home_assets/media/we1.png' %}" alt="">
+          </div>
+          <h3>Innovation</h3>
+          <p>We create forward-thinking solutions that drive progress, collaboration, and sustainability.</p>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="we-box">
+          <div class="we-ico">
+            <img src="{% static 'home_assets/media/we2.png' %}" alt="">
+          </div>
+          <h3>Excellence</h3>
+          <p>We uphold the highest standards to ensure reliability, efficiency, and long-term success.</p>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="we-box">
+          <div class="we-ico">
+            <img src="{% static 'home_assets/media/we3.png' %}" alt="">
+          </div>
+          <h3>Integrity</h3>
+          <p>We build trust through transparency, ethical practices, and lasting partnerships.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{% endblock %}

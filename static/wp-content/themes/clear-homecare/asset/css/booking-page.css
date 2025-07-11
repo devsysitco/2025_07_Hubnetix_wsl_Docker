@@ -1,0 +1,512 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.service-section .section-inner {
+    max-width: 1180px;
+    width: 100%;
+    margin: auto;
+}
+
+.service-section .service-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.service-row .service-col {
+    width: 100%;
+    padding: 15px 15px 15px 0;
+}
+
+.service-row .service-col.col-left {
+    max-width: 70%;
+    padding-left: 15px;
+    margin-bottom: 15px;
+}
+
+.service-row .service-col.col-right {
+    max-width: 30%;
+}
+
+.service-row .service-col ul {
+    padding: 0;
+    list-style: none;
+}
+
+.service-row .service-col .type-inner {
+    margin-top: 20px;
+}
+
+.service-row .all-setup {
+    padding: 15px;
+    min-height: 350px;
+    height: 100%;
+}
+
+.footer-col .back-btn a {
+    display: block;
+}
+
+.service-row .service-col .col-inner {
+    border-radius: 5px;
+    background-color: #fff;
+    box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 2px 2px 0 rgba(0, 0, 0, 0.12);
+    color: #4a4a4a;
+    max-width: 100%;
+    position: relative;
+    FONT-WEIGHT: 400;
+}
+
+.back-btn a[disabled="disabled"] {
+    pointer-events: none;
+    display: none;
+    opacity: 0.5;
+    transition: 0.4s all;
+}
+
+.service-row .service-col .col-inner .footer-col {
+    padding: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    border-top: 1px solid #3d195b;
+}
+
+.service-row .footer-col .all-btn a {
+    background-color: #00A3E2;
+    border-color: transparent;
+    line-height: 48px;
+    display: block;
+    padding: 0px 30px;
+    border-radius: 50px;
+    text-transform: uppercase;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 400;
+}
+
+.service-row .all-setup h5.setup-heading {
+    font-size: 1.125rem;
+    font-weight: 700;
+    font-style: normal;
+    font-stretch: normal;
+    line-height: 1.5rem;
+    letter-spacing: normal;
+    color: #333d47 !important;
+    margin-bottom: 10px;
+}
+
+.service-row .all-setup li {
+    margin-bottom: 10px;
+}
+
+.service-row .all-setup li input {
+    display: none;
+}
+
+.service-row .all-setup li label {
+    position: relative;
+    padding-left: 30px;
+    font-size: 20px;
+    cursor: pointer;
+    font-weight: 400;
+}
+
+.service-row .all-setup li label::before {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #00A3E2;
+    border-radius: 50px;
+    left: 0;
+    top: 2px;
+}
+
+.service-row .all-setup li label::after {
+    content: "";
+    position: absolute;
+    left: 2px;
+    background: #00A3E2;
+    width: 12px;
+    height: 12px;
+    border-radius: 50px;
+    top: 4px;
+    transform: scale(0);
+    transition: 0.4s all;
+}
+
+.service-row .all-setup li input:checked+label::after {
+    transform: scale(1);
+}
+
+.service-row .all-setup .option-two,
+.service-row .all-setup .option-two .other-textarea {
+    margin-top: 15px;
+}
+
+.service-row .all-setup .select-box {
+    max-width: 40%;
+    width: 100%;
+    padding: 8px 6px;
+    background: #fff;
+    color: #000000;
+    outline: none;
+    white-space: nowrap;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    border-radius: 5px;
+    text-transform: capitalize;
+}
+
+.slider-main .slick-list {
+    overflow: hidden;
+    width: 100%;
+}
+
+.slider-main .slick-track .slick-slide {
+    margin-right: 15px;
+    float: left;
+    height: 100%;
+    min-height: 1px;
+}
+
+.slider-main .slick-track input {
+    display: none;
+}
+
+.slider-main .slick-track label {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #00A3E2;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    margin: auto;
+}
+
+.date-slider .slick-track label {
+    width: 40px;
+    height: 40px;
+}
+
+.slider-main .slick-track input:checked+label {
+    background: #00A3E2;
+    color: #fff;
+}
+
+.service-row .all-setup:not(.active) .slider-main {
+    opacity: 0;
+}
+
+.service-row .all-setup .slider-main {
+    position: relative;
+}
+
+.service-row .all-setup .slider-main button {
+    color: #000;
+    border: none;
+    background-image: -webkit-gradient(linear, right top, left top, from(hsla(0, 0%, 100%, 0)), to(#fff));
+    background-image: linear-gradient(270deg, hsla(0, 0%, 100%, 0), #fff);
+    left: -15px;
+    position: absolute;
+    width: 80px;
+    height: 66px;
+    z-index: 29;
+    cursor: pointer;
+    top: 0;
+    font-size: 18px;
+    background-color: transparent;
+    opacity: 0;
+    transition: 0.4s all;
+    z-index: 1;
+}
+
+.service-row .all-setup .slider-main:hover button {
+    opacity: 1;
+}
+
+.service-row .all-setup .slider-main button.slick-next {
+    right: -15px;
+    left: auto;
+    background-image: -webkit-gradient(linear, left top, right top, from(hsla(0, 0%, 100%, 0)), to(#fff));
+    background-image: linear-gradient(90deg, hsla(0, 0%, 100%, 0), #fff);
+}
+
+.date-slider .slick-list .date {
+    text-align: center;
+}
+
+.date-slider .slick-list .date .date_p {
+    margin-bottom: 6px;
+}
+
+.service-row .all-setup .slider-main button i {
+    font-size: 28px;
+    color: #3d195b;
+}
+
+.service-row .all-setup .slider-main button.slick-disabled {
+    display: none !important;
+}
+
+.service-row .all-setup textarea {
+    max-width: calc(100% - 4rem);
+    min-width: calc(100% - 4rem);
+    min-height: 6.5rem;
+    max-height: 600px;
+    padding: 0.625em;
+    box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.1);
+    background-color: #fff;
+    border-color: #dbdbdb;
+    border-radius: 4px;
+    color: #363636;
+    font-size: 1rem;
+    line-height: 1.5;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    -webkit-box-align: center;
+}
+
+.service-row .all-setup .other-visit textarea {
+    margin: 0 2rem;
+}
+
+.time-main,
+.instructions-main {
+    margin-top: 20px;
+}
+
+.time-main p {
+    margin-top: 10px;
+}
+
+.service-row .all-setup .time-slider button {
+    height: 41px;
+}
+
+/* Right col */
+
+.service-row .service-col.col-right .col-inner {
+    padding: 15px;
+}
+
+.service-row .service-col.col-right ul li {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #3d195b;
+}
+
+.service-row .service-col.col-right ul li:last-child {
+    padding: 0;
+    margin: 0;
+    border: none;
+}
+
+.service-row .service-col.col-right ul li span {
+    max-width: 50%;
+    width: 100%;
+}
+
+.service-row .service-col.col-right ul li span.one {
+    font-weight: bold;
+}
+
+.service-row .service-col.col-right ul li span.two {
+    text-transform: capitalize;
+    text-align: right;
+}
+
+.service-row .service-col.col-right .col-inner p {
+    text-align: center;
+    font-weight: bold;
+    min-height: 250px;
+    line-height: 250px;
+    font-size: 18px;
+}
+
+.all-setup ul.info-ul li {
+    padding-top: 10px;
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #3d195b;
+}
+
+.all-setup ul.info-ul li span.one {
+    font-weight: bold;
+}
+
+.all-setup ul.info-ul li span.two {
+    text-transform: capitalize;
+}
+
+body.booking-loading::before {
+    content: "";
+    position: absolute;
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    border-top: 3px solid #3d195b;
+    width: 40px;
+    height: 40px;
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+    display: flex;
+    justify-content: center;
+    margin: 0 auto;
+    top: 40%;
+    left: 50%;
+    z-index: 9999;
+}
+
+body.booking-loading {
+    position: relative;
+}
+
+body.booking-loading::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 999;
+    top: 0;
+    opacity: 0.5;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@media(max-width: 991px) {
+    .service-row .service-col.col-left {
+        max-width: 65%;
+    }
+    .service-row .service-col.col-right {
+        max-width: 35%;
+    }
+    .service-row .all-setup .slider-main button {
+        width: 27px;
+        top: 18px;
+        opacity: 1;
+    }
+    .service-row .all-setup .slider-main button.slick-next {
+        background-image: none;
+        right: -18px;
+    }
+    .slider-main .slick-track .slick-slide {
+        margin-right: 8px;
+        margin-left: 8px;
+    }
+    .service-row .all-setup li label {
+        font-size: 18px;
+    }
+    .footer-main .footer-inner.container-section,
+    .footer-top-bar {
+        display: none;
+    }
+    .footer-main {
+        padding: 0px 20px 0;
+    }
+    .service-row .all-setup .time-slider button {
+        top: 0px;
+    }
+    .footer-inner-two p {
+        font-size: 11px;
+        margin-bottom: 8px;
+    }
+    .footer-inner-two ul {
+        margin-right: 90px;
+    }
+    body {
+        min-height: 100vh;
+        padding-bottom: 58px;
+        position: relative;
+    }
+    body .footer-main {
+        position: absolute;
+        width: 100%;
+        bottom: 0;
+    }
+}
+
+@media(max-width: 767px) {
+    .service-row .service-col.col-right {
+        display: none;
+    }
+    .service-row .service-col.col-left {
+        max-width: 100%;
+    }
+    .service-row .all-setup h5.setup-heading {
+        font-size: 16px;
+    }
+    .service-row .all-setup li label {
+        font-size: 16px;
+    }
+    .service-row .all-setup textarea {
+        max-width: 100%;
+        min-width: 100%;
+    }
+    body {
+        padding-bottom: 110px;
+    }
+}
+
+/*admin*/
+
+.service-row .service-col ul.user-select {
+    margin-bottom: 15px;
+}
+
+/*lu ar*/
+
+#ar-lu .service-row .all-setup li label {
+    padding-left: 0px;
+    padding-right: 30px;
+}
+
+#ar-lu .service-row .all-setup li label:before {
+    left: auto;
+    right: 0;
+}
+
+#ar-lu .service-row .all-setup li label:after {
+    left: auto;
+    right: 4px;
+}
+
+#ar-lu .service-row .service-col .col-inner .footer-col {
+    direction: ltr;
+}
+
+#ar-lu .back-btn a {
+    transform: rotate(180deg);
+}
+
+#ar-lu .slider-main .slick-track .slick-slide {
+    margin-right: 0px;
+    margin-left: 15px;
+}
+
+#ar-lu .all-setup ul.info-ul li span.two {
+    direction: ltr;
+}

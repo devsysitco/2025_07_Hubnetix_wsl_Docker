@@ -1,0 +1,305 @@
+{% load static %}
+
+<!-- Styles specific to the Create New List modal -->
+<style>
+    a:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .list-popup {
+        display: none;
+        position: absolute;
+        background-color: white;
+        border: 1px solid #ddd;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        padding: 10px;
+        width: 220px;
+    }
+
+    .add-to-list-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        margin-top: 10px;
+        padding: 8px;
+        background-color: #f8f9fa;
+        border: 1px solid #ddd;
+    }
+
+    .list-popup-content {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .list-actions {
+        margin-top: 10px;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+    }
+
+    .list-action-link {
+        display: block;
+        color: #007bff;
+        margin: 5px 0;
+    }
+    .form-check-label {
+        color: black;
+    }
+    .list-checkbox, .form-check-label {
+        cursor: default;
+    }
+</style>
+
+<!-- Create New List Modal -->
+<div class="modal fade" id="cnModal" tabindex="-1" aria-labelledby="cnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header cl-header">
+                <div>
+                    <h2 class="mod-head">
+                        Create New List
+                    </h2>
+                    <h3 class="sub-mod-head">
+                        Create new list to organize your products.
+                    </h3>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body cl-body">
+                <form id="createListForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="modal-product-id" name="product_id" value="">
+                    <div class="input-area-contact">
+                        <div class="inp-grp">
+                            <input type="text" name="list_name" id="createListName" placeholder="List Name" required>
+                        </div>
+                        <div class="inp-grp">
+                            <textarea name="list_note" id="createListNote" placeholder="List Note" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="m-footer">
+                        <button type="button" class="btn cancel" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn save" id="saveNewList">Save List</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const createListModal = new bootstrap.Modal(document.getElementById('cnModal'));
+        let formSubmitting = false; // Flag to prevent duplicate submissions
+        let currentProductId = null;
+
+        // Show/hide dropdown function
+        window.show = function(element) {
+            const showBox = element.querySelector('.show-box');
+            if (showBox.style.display === 'none') {
+                // Hide all other dropdowns first
+                document.querySelectorAll('.show-box').forEach(box => {
+                    box.style.display = 'none';
+                });
+                showBox.style.display = 'block';
+                currentProductId = element.getAttribute('data-product-id');
+                
+                // Add event listener to close when clicking outside
+                setTimeout(() => {
+                    document.addEventListener('click', closeCurrentDropdown);
+                }, 0);
+            } else {
+                showBox.style.display = 'none';
+                document.removeEventListener('click', closeCurrentDropdown);
+            }
+        };
+
+        // Function to close dropdown when clicking outside
+        function closeCurrentDropdown(e) {
+            const activeDropdowns = document.querySelectorAll('.show-box[style="display: block;"]');
+            activeDropdowns.forEach(dropdown => {
+                // Prevent closing if clicking on specific elements
+                if (dropdown.contains(e.target) || 
+                    e.target.classList.contains('add-to-list-trigger') ||
+                    e.target.closest('.modal') ||
+                    e.target.classList.contains('btn-close') ||
+                    e.target.closest('.box-bottom') ||
+                    e.target.closest('label.form-check-label') ||
+                    e.target.classList.contains('list-checkbox') ||
+                    e.target.tagName === 'INPUT') {
+                    return; // Do not close the dropdown
+                }
+                dropdown.style.display = 'none';
+                document.removeEventListener('click', closeCurrentDropdown);
+            });
+        }
+
+        // Event delegation for add-to-list-btn
+        document.getElementById('datasheet-list').addEventListener('click', function(e) {
+            if (e.target.classList.contains('add-to-list-btn')) {
+                e.preventDefault();
+                const parentButton = e.target.closest('.buy-now');
+                const productId = parentButton.getAttribute('data-product-id');
+                const datasheetId = parentButton.getAttribute('data-datasheet-id');
+                const datasheetName = parentButton.getAttribute('data-datasheet-name');
+                const selectedLists = Array.from(parentButton.querySelectorAll('.list-checkbox:checked')).map(cb => cb.value);
+
+                if (selectedLists.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No List Selected',
+                        text: 'Please select at least one list.',
+                        confirmButtonColor: '#007bff'
+                    });
+                    return;
+                }
+
+                fetch('{% url "add_to_list_datasheet" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: new URLSearchParams({
+                        'product_id': productId,
+                        'datasheet_id': datasheetId,
+                        'datasheet_name': datasheetName,
+                        'list_ids[]': selectedLists
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: 'Product added to selected lists successfully!',
+                            confirmButtonColor: '#007bff'
+                        });
+                        parentButton.querySelector('.show-box').style.display = 'none';
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error: ' + data.error,
+                            confirmButtonColor: '#007bff'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'An error occurred. Please try again.',
+                        confirmButtonColor: '#007bff'
+                    });
+                });
+            }
+        });
+
+        // Event delegation for create-new-list-link
+        document.getElementById('datasheet-list').addEventListener('click', function(e) {
+            if (e.target.classList.contains('create-new-list-link')) {
+                e.preventDefault();
+                const parentButton = e.target.closest('.buy-now');
+                const productId = parentButton.getAttribute('data-product-id');
+                document.getElementById('modal-product-id').value = productId;
+                parentButton.querySelector('.show-box').style.display = 'none';
+                createListModal.show();
+                
+                // Reset the form and submission flag
+                document.getElementById('createListForm').reset();
+                formSubmitting = false;
+            }
+        });
+
+        // Save New List
+        const saveNewListButton = document.getElementById('saveNewList');
+        const oldClone = saveNewListButton.cloneNode(true);
+        saveNewListButton.parentNode.replaceChild(oldClone, saveNewListButton);
+        const newSaveButton = document.getElementById('saveNewList');
+
+        newSaveButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            if (formSubmitting) {
+                return;
+            }
+            
+            formSubmitting = true;
+            this.disabled = true;
+            
+            const form = document.getElementById('createListForm');
+            const formData = new FormData(form);
+
+            fetch('{% url "create_list" %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                formSubmitting = false;
+                this.disabled = false;
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'New list created successfully!',
+                        confirmButtonColor: '#007bff'
+                    }).then(() => {
+                        createListModal.hide();
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error: ' + data.error,
+                        confirmButtonColor: '#007bff'
+                    });
+                }
+            })
+            .catch(error => {
+                formSubmitting = false;
+                this.disabled = false;
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred. Please try again.',
+                    confirmButtonColor: '#007bff'
+                });
+            });
+        });
+
+        // Fix modal backdrop bug
+        document.getElementById('cnModal').addEventListener('hidden.bs.modal', function () {
+            document.body.classList.remove('modal-open');
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.style.overflow = '';
+            formSubmitting = false;
+        });
+
+        // CSRF token helper
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %}

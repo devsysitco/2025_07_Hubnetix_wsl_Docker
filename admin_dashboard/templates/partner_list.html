@@ -1,0 +1,193 @@
+{% extends 'admin_dashboard_base.html' %}
+{% load static %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Partners</h4>
+                <h6>Manage your partners</h6>
+            </div>
+
+            <div class="page-btn">
+                <a href="{% url 'admin_dashboard-partner_create' %}" class="btn btn-added">
+                    <img src="{% static 'assets/img/icons/plus.svg' %}" class="me-1" alt="Add Partner">Add Partner
+                </a>
+            </div>
+        </div>
+
+        <!-- Django Messages -->
+        <div id="django-messages-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <!-- Search and Filter Section -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="get" class="d-flex">
+                            <input type="search" name="search" class="form-control me-2" 
+                                   placeholder="Search partners..." 
+                                   value="{{ search_query }}">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" 
+                                    data-bs-toggle="dropdown">
+                                Sort By: {{ sort_by }} ({{ order }})
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?sort=email&order=asc">Email (Ascending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=email&order=desc">Email (Descending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=partner_company_name&order=asc">Company Name (Ascending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=partner_company_name&order=desc">Company Name (Descending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=partnership_level&order=asc">Partnership Level (Ascending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=partnership_level&order=desc">Partnership Level (Descending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=date_joined&order=desc">Newest First</a></li>
+                                <li><a class="dropdown-item" href="?sort=date_joined&order=asc">Oldest First</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Partners Table -->
+                <div class="table-responsive">
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Company Name</th>
+                                <th>Email</th>
+                                <th>Business Type</th>
+                                <th>Partnership Level</th>
+                                <th>Date Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for partner in partners %}
+                            <tr id="row-{{ partner.id }}">
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ partner.partner_company_name }}</td>
+                                <td>{{ partner.email }}</td>
+                                <td>{{ partner.business_type }}</td>
+                                <td>{{ partner.partnership_level }}</td>
+                                <td>{{ partner.date_joined|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a href="{% url 'admin_dashboard-partner_details' partner.pk %}" 
+                                                   class="dropdown-item">
+                                                    View Details
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="{% url 'admin_dashboard-partner_edit' partner.pk %}" 
+                                                   class="dropdown-item">
+                                                    Edit
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" 
+                                                   class="dropdown-item text-danger delete-partner" 
+                                                   data-bs-toggle="modal" 
+                                                   data-bs-target="#deleteModal{{ partner.id }}"
+                                                   data-partner-id="{{ partner.id }}">
+                                                    Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Delete Confirmation Modal -->
+                            <div class="modal fade" 
+                                 id="deleteModal{{ partner.id }}" 
+                                 data-partner-id="{{ partner.id }}"
+                                 tabindex="-1" 
+                                 aria-labelledby="deleteModalLabel{{ partner.id }}" 
+                                 aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteModalLabel{{ partner.id }}">
+                                                Confirm Delete
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete the partner "{{ partner.partner_company_name }}"?
+                                            <p class="text-danger">This action cannot be undone.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                Cancel
+                                            </button>
+                                            <form method="post" 
+                                                  action="{% url 'admin_dashboard-partner_delete' partner.pk %}"
+                                                  class="delete-partner-form">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger">
+                                                    Confirm Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                {% if total_partners > per_page %}
+                <nav>
+                    <ul class="pagination">
+                        {% if partners.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ partners.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in partners.paginator.page_range %}
+                            {% if partners.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if partners.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ partners.next_page_number }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}

@@ -1,0 +1,283 @@
+{% extends 'admin_dashboard_base.html' %}
+{% load static %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Product List</h4>
+                <h6>Manage your products</h6>
+            </div>
+
+            <div class="page-btn">
+                <a href="{% url 'admin_dashboard-product_add' %}" class="btn btn-added">
+                    <img src="{% static 'assets/img/icons/plus.svg' %}" class="me-1" alt="Add Product">Add Product
+                </a>
+            </div>
+        </div>
+        
+        <!-- Toast Notifications Container -->
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+            <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body" id="successToastMessage"></div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+            <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body" id="errorToastMessage"></div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Django Messages -->
+        <div id="django-messages-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <!-- Search and Filter Section -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="get" class="d-flex">
+                            <input type="search" name="search" class="form-control me-2" 
+                                   placeholder="Search products..." 
+                                   value="{{ search_query }}">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </form>
+                    </div>
+                    
+                    <div class="col-md-6 text-end">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" 
+                                    data-bs-toggle="dropdown">
+                                Sort By: {{ sort_by }} ({{ order }})
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?sort=name&order=asc">Name (A-Z)</a></li>
+                                <li><a class="dropdown-item" href="?sort=name&order=desc">Name (Z-A)</a></li>
+                                <li><a class="dropdown-item" href="?sort=created_at&order=desc">Newest First</a></li>
+                                <li><a class="dropdown-item" href="?sort=quantity_in_stock&order=desc">Stock (High-Low)</a></li>
+                                <li><a class="dropdown-item" href="?sort=quantity_in_stock&order=asc">Stock (Low-High)</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                
+
+                <!-- Product Table -->
+                <div class="table-responsive">
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Categories</th>
+                                <th>Stock</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in product_list %}
+                            <tr id="row-{{ product.id }}">
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    {% if product.main_image %}
+                                    <img src="{{ product.main_image.url }}" alt="{{ product.name }}" 
+                                         class="product-thumbnail" style="max-width: 50px;">
+                                    {% else %}
+                                    <img src="{% static 'assets/img/product-placeholder.png' %}" 
+                                         alt="No image" class="product-thumbnail" style="max-width: 50px;">
+                                    {% endif %}
+                                </td>
+                                <td>{{ product.name }}</td>
+                                <td>
+                                    {% for category in product.categories.all %}
+                                    <span class="badge bg-secondary me-1">{{ category.name }}</span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <span class="badge {% if product.quantity_in_stock > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ product.quantity_in_stock }}
+                                    </span>
+                                </td>
+                                <td>{{ product.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a href="{% url 'admin_dashboard-product_details' product.pk %}" 
+                                                   class="dropdown-item">
+                                                    View Details
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="{% url 'admin_dashboard-product_edit' product.pk %}" 
+                                                   class="dropdown-item">
+                                                    Edit
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" 
+                                                   class="dropdown-item text-danger delete-product" 
+                                                   data-bs-toggle="modal" 
+                                                   data-bs-target="#deleteModal{{ product.id }}"
+                                                   data-product-id="{{ product.id }}">
+                                                    Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade" 
+                                         id="deleteModal{{ product.id }}" 
+                                         data-product-id="{{ product.id }}"
+                                         tabindex="-1" 
+                                         aria-labelledby="deleteModalLabel{{ product.id }}" 
+                                         aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteModalLabel{{ product.id }}">
+                                                        Confirm Delete
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to delete the product "{{ product.name }}"?
+                                                    <p class="text-danger">This action cannot be undone.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                        Cancel
+                                                    </button>
+                                                    <form method="post" 
+                                                          action="{% url 'admin_dashboard-product_delete' product.pk %}"
+                                                          class="delete-product-form">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">
+                                                            Confirm Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                {% if total_products > per_page %}
+                    <nav>
+                        <ul class="pagination">
+                            {% if product_list.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ product_list.previous_page_number }}
+                                {% if search_query %}&search={{ search_query }}{% endif %}
+                                {% if category_filter %}&category={{ category_filter }}{% endif %}
+                                {% if stock_filter %}&stock={{ stock_filter }}{% endif %}
+                                {% if sort_by %}&sort={{ sort_by }}{% endif %}
+                                {% if order %}&order={{ order }}{% endif %}">Previous</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in product_list.paginator.page_range %}
+                                {% if product_list.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}
+                                        {% if search_query %}&search={{ search_query }}{% endif %}
+                                        {% if category_filter %}&category={{ category_filter }}{% endif %}
+                                        {% if stock_filter %}&stock={{ stock_filter }}{% endif %}
+                                        {% if sort_by %}&sort={{ sort_by }}{% endif %}
+                                        {% if order %}&order={{ order }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if product_list.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ product_list.next_page_number }}
+                                {% if search_query %}&search={{ search_query }}{% endif %}
+                                {% if category_filter %}&category={{ category_filter }}{% endif %}
+                                {% if stock_filter %}&stock={{ stock_filter }}{% endif %}
+                                {% if sort_by %}&sort={{ sort_by }}{% endif %}
+                                {% if order %}&order={{ order }}{% endif %}">Next</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Toast Initialization
+    const successToast = new bootstrap.Toast(document.getElementById('successToast'));
+    const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+
+    // Delete Product Handling
+    document.querySelectorAll('.delete-product-form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const modal = form.closest('.modal');
+            const productId = modal.dataset.productId;
+            const productRow = document.getElementById(`row-${productId}`);
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': form.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove row and close modal
+                    if (productRow) {
+                        productRow.remove();
+                    }
+                    bootstrap.Modal.getInstance(modal).hide();
+                } else {
+                    console.error('Error deleting product:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Delete error:', error);
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

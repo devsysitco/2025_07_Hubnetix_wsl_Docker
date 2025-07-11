@@ -1,0 +1,118 @@
+{% extends 'seo_dashboard_base.html' %}
+{% load static %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Projects</h4>
+                <h6>Manage your projects</h6>
+            </div>
+        </div>
+
+        <!-- Django Messages -->
+        <div id="django-messages-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <!-- Search and Filter Section -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="get" class="d-flex">
+                            <input type="search" name="search" class="form-control me-2" placeholder="Search projects..." value="{{ search_query }}">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                Sort By: {{ sort_by }} ({{ order }})
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?sort=title&order=asc">Title (Ascending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=title&order=desc">Title (Descending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=created_at&order=desc">Newest First</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Table -->
+                <div class="table-responsive">
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Active</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in projects %}
+                            <tr id="row-{{ project.id }}">
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ project.title }}</td>
+                                <td>{{ project.get_category_display }}</td>
+                                <td>{{ project.get_status_display }}</td>
+                                <td>
+                                    {% if project.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="{% url 'seo_dashboard-project_details' project.pk %}" class="dropdown-item">View Details</a></li>
+                                            <li><a href="{% url 'seo_dashboard-project_edit' project.pk %}" class="dropdown-item">Edit</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                {% if total_projects > per_page %}
+                <nav>
+                    <ul class="pagination">
+                        {% if projects.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ projects.previous_page_number }}">Previous</a></li>
+                        {% endif %}
+                        {% for num in projects.paginator.page_range %}
+                            {% if projects.number == num %}
+                                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% else %}
+                                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        {% if projects.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ projects.next_page_number }}">Next</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}

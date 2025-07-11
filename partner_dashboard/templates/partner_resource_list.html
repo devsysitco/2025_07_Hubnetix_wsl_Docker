@@ -1,0 +1,121 @@
+{% extends 'partner_dashboard_base.html' %}
+{% load static %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Resources</h4>
+                <h6>Manage your resources</h6>
+            </div>
+        </div>
+
+        <!-- Django Messages -->
+        <div id="django-messages-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <!-- Search and Filter Section -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="get" class="d-flex">
+                            <input type="search" name="search" class="form-control me-2" 
+                                   placeholder="Search resources..." 
+                                   value="{{ search_query }}">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" 
+                                    data-bs-toggle="dropdown">
+                                Sort By: {{ sort_by }} ({{ order }})
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?sort=title&order=asc">Title (Ascending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=title&order=desc">Title (Descending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=created_at&order=desc">Newest First</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resources Table -->
+                <div class="table-responsive">
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Type</th>
+                                <th>Date Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for resource in resources %}
+                            <tr id="row-{{ resource.id }}">
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ resource.title }}</td>
+                                <td>{{ resource.description }}</td>
+                                <td>{{ resource.resource_type }}</td>
+                                <td>{{ resource.created_at|date:"M d, Y" }}</td>
+                                
+                                <td>
+                                    <a href="{% url 'partner_dashboard-resource_details' resource.pk %}" 
+                                       class="btn btn-sm btn-primary">
+                                        View Details
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                {% if total_resources > per_page %}
+                <nav>
+                    <ul class="pagination">
+                        {% if resources.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ resources.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in resources.paginator.page_range %}
+                            {% if resources.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if resources.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ resources.next_page_number }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}

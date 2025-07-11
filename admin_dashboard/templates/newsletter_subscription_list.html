@@ -1,0 +1,239 @@
+{% extends 'admin_dashboard_base.html' %}
+{% load static %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Newsletter Subscriptions</h4>
+                <h6>Manage your newsletter subscriptions</h6>
+            </div>
+        </div>
+
+        <!-- Django Messages -->
+        <div id="django-messages-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <!-- Search and Filter Section -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="get" class="d-flex">
+                            <input type="search" name="search" class="form-control me-2" 
+                                   placeholder="Search subscriptions..." 
+                                   value="{{ search_query }}">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" 
+                                    data-bs-toggle="dropdown">
+                                Sort By: {{ sort_by }} ({{ order }})
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?sort=email&order=asc">Email (Ascending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=email&order=desc">Email (Descending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=created_at&order=desc">Newest First</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscriptions Table -->
+                <div class="table-responsive">
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Email</th>
+                                <th>Subscribed Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subscription in subscriptions %}
+                            <tr id="row-{{ subscription.id }}">
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ subscription.email }}</td>
+                                <td>{{ subscription.subscribed_at|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if subscription.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a href="#" 
+                                                   class="dropdown-item toggle-status"
+                                                   data-subscription-id="{{ subscription.id }}"
+                                                   data-current-status="{% if subscription.is_active %}active{% else %}inactive{% endif %}">
+                                                    {% if subscription.is_active %}
+                                                        Disable Subscription
+                                                    {% else %}
+                                                        Enable Subscription
+                                                    {% endif %}
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" 
+                                                   class="dropdown-item text-danger delete-subscription" 
+                                                   data-bs-toggle="modal" 
+                                                   data-bs-target="#deleteModal{{ subscription.id }}"
+                                                   data-subscription-id="{{ subscription.id }}">
+                                                    Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade" 
+                                         id="deleteModal{{ subscription.id }}" 
+                                         tabindex="-1" 
+                                         aria-labelledby="deleteModalLabel{{ subscription.id }}" 
+                                         aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="deleteModalLabel{{ subscription.id }}">
+                                                        Confirm Delete
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to delete the subscription for "{{ subscription.email }}"?
+                                                    <p class="text-danger">This action cannot be undone.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                        Cancel
+                                                    </button>
+                                                    <form method="post" 
+                                                          action="{% url 'admin_dashboard-newsletter_subscription_delete' subscription.pk %}"
+                                                          class="delete-subscription-form">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">
+                                                            Confirm Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                {% if total_subscriptions > per_page %}
+                <nav>
+                    <ul class="pagination">
+                        {% if subscriptions.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ subscriptions.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in subscriptions.paginator.page_range %}
+                            {% if subscriptions.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if subscriptions.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ subscriptions.next_page_number }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Handle toggle status
+    $('.toggle-status').click(function(e) {
+        e.preventDefault();
+        var subscriptionId = $(this).data('subscription-id');
+        var currentStatus = $(this).data('current-status');
+        
+        $.ajax({
+            url: "{% url 'admin_dashboard-newsletter_subscription_toggle_status' %}",
+            type: 'POST',
+            data: {
+                'subscription_id': subscriptionId,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Update the status badge
+                    var statusBadge = $('#row-' + subscriptionId + ' .badge');
+                    var actionLink = $('#row-' + subscriptionId + ' .toggle-status');
+                    
+                    if (response.is_active) {
+                        statusBadge.removeClass('bg-danger').addClass('bg-success').text('Active');
+                        actionLink.text('Disable Subscription');
+                        actionLink.data('current-status', 'active');
+                    } else {
+                        statusBadge.removeClass('bg-success').addClass('bg-danger').text('Inactive');
+                        actionLink.text('Enable Subscription');
+                        actionLink.data('current-status', 'inactive');
+                    }
+                    
+                    // Show success message
+                    $('#django-messages-container').html(
+                        '<div class="alert alert-success alert-dismissible fade show" role="alert">' +
+                        response.message +
+                        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                        '</div>'
+                    );
+                }
+            },
+            error: function(xhr) {
+                // Show error message
+                $('#django-messages-container').html(
+                    '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                    'Error updating subscription status. Please try again.' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                    '</div>'
+                );
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock body %}

@@ -1,0 +1,85 @@
+{% extends 'home_base.html' %}
+{% load static %}
+{% block meta_description %}{{ article.meta_description }}{% endblock %}
+{% block meta_keywords %}{{ article.meta_tags }}{% endblock %}
+{% block og_title %}{{ article.title }} | Hubnetix{% endblock %}
+{% block og_description %}{{ article.meta_description }}{% endblock %}
+{% block og_image %}{% if article.featured_image %}{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'home_assets/media/default-image.png' %}{% endif %}{% endblock %}
+{% block title %}{{ article.title }} | Hubnetix{% endblock %}
+{% block canonical_url %}<link rel="canonical" href="{% if article.canonical_url %}{{ article.canonical_url }}{% else %}{{ request.build_absolute_uri }}{% endif %}">{% endblock %}
+{% block content %}
+
+
+<style>
+    a:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+</style>
+
+<section class="blog-detail">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-7">
+                <div class="blog-d-img">
+                    {% if article.featured_image %}
+                        <img src="{{ article.featured_image.url }}" alt="{{ article.featured_image_alt|default:article.title }}">
+                    {% endif %}
+                </div>
+                <p>
+                    {{ article.short_description|safe }} | {{ article.date_published|date:"d M, Y" }}
+                </p>
+                <div class="blog-content">
+                    <h1 class="main-tit">{{ article.title }}</h1>
+                    {{ article.full_content|safe }}
+                </div>
+            </div>
+            
+            <div class="col-5">
+                <div class="recent-blog-area">
+                    <h2 class="main-tit">Recent News</h2>
+                    <ul class="rec-blog">
+                        {% for recent_article in recent_news %}
+                        <li>
+                            <a href="{% url 'home-news_detail' recent_article.slug %}">
+                                <div class="blog-card blog-de-card">
+                                    <div class="blog-img">
+                                        {% if recent_article.featured_image %}
+                                            <img src="{{ recent_article.featured_image.url }}" 
+                                                 alt="{{ recent_article.featured_image_alt|default:recent_article.title }}" 
+                                                 class="rounded-3">
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <h3>{{ recent_article.get_category_display }}</h3>
+                                        <h2>{{ recent_article.title }}</h2>
+                                        <div class="blog-foot">
+                                            <p>
+                                                {{ recent_article.short_description|safe }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <h2 class="main-tit">Categories</h2>
+                    <ul class="cat-ul">
+                        {% for category in categories %}
+                        <li>
+                            <a href="{% url 'home-news' %}?category={{ category.category }}">
+                                <h3>{{ category.display_name }} ({{ category.count }})</h3>
+                                <i class="fa-solid fa-chevron-right ms-3"></i>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

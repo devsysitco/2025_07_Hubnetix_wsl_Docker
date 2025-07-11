@@ -1,0 +1,674 @@
+{% extends 'home_base.html' %}
+{% load static %}
+
+{% block content %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ list.name }} - Product List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" />
+    
+    <style>
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            border-radius: 50px;
+            padding: 2px 12px;
+            width: fit-content;
+            transition: all 0.2s ease;
+        }
+        
+        .quantity-button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #000000;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            border-radius: 50%;
+        }
+        
+        .quantity-button:hover {
+            color: #1f2937;
+            background-color: #e5e7eb;
+        }
+        
+        .quantity-button:focus {
+            outline: none;
+        }
+        
+        .quantity-button:active {
+            transform: scale(0.95);
+        }
+        
+        .quantity-button:disabled {
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .quantity-value {
+            width: 100px;
+            text-align: center;
+            border: none;
+            background: none;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            padding: 0;
+        }
+        
+        .quantity-value:focus {
+            outline: none;
+        }
+
+        .p-table input {
+            width: 64px !important;
+            height: 25px;
+            accent-color: var(--pc);
+            cursor: pointer;
+        }
+
+        /* Hide number input arrows */
+        .quantity-value::-webkit-outer-spin-button,
+        .quantity-value::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .quantity-value[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .quantity-control.loading .spinner {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 16px;
+            color: #3b82f6;
+        }
+
+        .feedback {
+            display: none;
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #1f2937;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.error {
+            background-color: #dc2626;
+        }
+
+        /* Loading state for Request For Quote button */
+        .btn.save.loading .spinner {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .btn.save.loading {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }        
+
+        @media (max-width: 768px) {
+            .quantity-control {
+                padding: 8px 12px;
+            }
+            
+            .quantity-button {
+                font-size: 18px;
+                width: 32px;
+                height: 32px;
+            }
+            
+            .quantity-value {
+                width: 50px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Modals -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header cl-header">
+                    <div>
+                        <h2 class="mod-head">List Settings</h2>
+                        <h3 class="sub-mod-head">Manage your lists to organize your products.</h3>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body cl-body">
+                    <div id="modalAlert" class="alert d-none" role="alert"></div>
+                    <form id="listSettingsForm" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="list_id" id="settingsListId">
+                        <input type="hidden" name="is_default" id="isDefaultList">
+                        <div class="input-area-contact">
+                            <div class="inp-grp">
+                                <input type="text" class="form-control" id="listName" name="list_name" placeholder="List Name" required>
+                                <small id="defaultListWarning" class="text-muted" style="display: none;">Default list name cannot be changed</small>
+                            </div>
+                            <div class="inp-grp">
+                                <textarea class="form-control" id="listNote" name="list_note" placeholder="List Note" rows="3"></textarea>
+                            </div>
+                        </div>
+                        <div class="input-area-contact">
+                            <div class="inp-grp">
+                                <input type="text" class="form-control" id="duplicateListName" name="duplicate_name" placeholder="Duplicate List as">
+                            </div>
+                        </div>
+                        <div class="delete-section">
+                            <h3>Delete this List</h3>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                                <label class="form-check-label" for="confirmDelete">Check to Delete</label>
+                            </div>
+                        </div>
+                        <div class="m-footer m-flex">
+                            <div class="btn-div">
+                                <a href="javascript:void(0)" onclick="duplicateList()"><i class="fa-solid fa-clone"></i></a>
+                                <a href="javascript:void(0)" onclick="deleteList()"><i class="fa-solid fa-trash"></i></a>
+                            </div>
+                            <div>
+                                <button type="button" class="btn cancel" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn save" onclick="updateList()">Update List</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="quoteModal" tabindex="-1" aria-labelledby="quoteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header cl-header">
+                    <div>
+                        <h2 class="mod-head">Request For Quote</h2>
+                        <h3 class="sub-mod-head">Your project details will be sent to Hubnetix.</h3>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body cl-body">
+                    <div class="m-footer">
+                        <button type="button" class="btn cancel" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn save" id="requestQuoteBtn" onclick="requestForQuote()">Send Request</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Banner -->
+    <section class="sub-banner sub-sub">
+        <img src="{% static 'home_assets/media/surrport.jpg' %}" alt="Banner">
+    </section>
+
+    <!-- Product List Section -->
+    <section class="p-list-detail">
+        <div class="container">
+            <div class="p-detail-head">
+                <div class="d-l">
+                    <div class="title-div">
+                        <h2 class="title">{{ list.name }}</h2>
+                        <div>
+                            <a href="javascript:void(0)" onclick="openSettingsModal('{{ list.id }}', '{{ list.name|escapejs }}', {{ list.is_default|lower }}, '{{ list.note|default:''|escapejs }}')"><i class="fa-solid fa-gear"></i></a>
+                            <!-- <a href="javascript:void(0)" onclick="shareList()"><i class="fa-solid fa-share-nodes"></i></a> -->
+                        </div>
+                    </div>
+                    <div>
+                        <p>{{ page_obj.paginator.count }} Items added</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="m-footer">
+                        <button type="button" class="btn save" data-bs-toggle="modal" data-bs-target="#quoteModal">Request For Quote</button>
+                        <button type="button" class="btn cancel" onclick="downloadProductList()">Download List</button>
+                    </div>
+                </div>
+            </div>
+            <div class="pd-body">
+                <div class="table-head">
+                    <label>
+                        <input type="checkbox" id="selectAllCheckbox" onchange="selectAll(this)" class="me-2">Select All
+                    </label>
+                    <label>
+                        <i class="fa-solid fa-trash-can me-2"></i>
+                        <a href="javascript:void(0)" onclick="deleteSelected()">Delete</a>
+                    </label>
+                </div>
+                <table class="table p-table">
+                    <tbody>
+                        {% for item in page_obj %}
+                        <tr data-item-id="{{ item.id }}">
+                            <td>
+                                <div class="pd-img">
+                                    <img src="{{ item.product_id.main_image.url }}" alt="{{ item.product_name }}">
+                                </div>
+                            </td>
+                            <td>
+                                <h3>{{ item.product_name }}</h3>
+                                <h4>{{ item.product_id.short_description }}</h4>
+                                <h6>
+                                    {% for category in item.product_id.categories.all %}
+                                        {{ category.name }}{% if not forloop.last %}, {% endif %}
+                                    {% empty %}
+                                        Uncategorized
+                                    {% endfor %}
+                                </h6>
+                            </td>
+                            <td>
+                                <div class="qty-b quantity-control" id="qty-control-{{ item.id }}">
+                                    <button type="button" class="quantity-button decrease" onclick="changeQuantity('{{ item.id }}', -1)" aria-label="Decrease quantity">−</button>
+                                    <input type="number" class="quantity-value" value="{{ item.quantity }}" min="1" step="1" aria-label="Quantity">
+                                    <button type="button" class="quantity-button increase" onclick="changeQuantity('{{ item.id }}', 1)" aria-label="Increase quantity">+</button>
+                                    <span class="feedback"></span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if item.product_id.measurement %}
+                                    <h3>Measurement Unit</h3>
+                                    <h4>{{ item.product_id.measurement }}</h4>
+                                
+                                {% endif %}
+                            </td>
+                            <td>
+                                <input type="checkbox" class="delete-checkbox">
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4">No items in this list.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js"></script>
+    
+    <script>
+        const listId = "{{ list.id }}";
+        const csrfToken = "{{ csrf_token }}";
+        let hasChanges = false;
+        const isAuthenticated = true;
+
+        function fetchAction(url, method = "POST", body = null) {
+            const options = { method, headers: { "X-CSRFToken": csrfToken }, credentials: "same-origin" };
+            if (body) options.body = body;
+            return fetch(url, options)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success || data.status === "success") return data;
+                    throw new Error(data.error || data.message || "Action failed");
+                });
+        }
+
+        function showQuantityFeedback(itemId, message, isError = false) {
+            const control = document.getElementById(`qty-control-${itemId}`);
+            const feedback = control.querySelector('.feedback');
+            feedback.textContent = message;
+            feedback.classList.toggle('error', isError);
+            feedback.classList.add('show');
+            setTimeout(() => feedback.classList.remove('show'), 2000);
+        }
+
+        function changeQuantity(itemId, delta) {
+            const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
+            const control = document.getElementById(`qty-control-${itemId}`);
+            const input = control.querySelector(".quantity-value");
+            let quantity = parseInt(input.value) + delta;
+            
+            if (quantity < 1) {
+                showQuantityFeedback(itemId, "Quantity cannot be less than 1", true);
+                return;
+            }
+            
+            input.value = quantity;
+            control.classList.add('loading');
+            input.disabled = true;
+            control.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+            // Dynamically add spinner
+            const spinner = document.createElement('i');
+            spinner.className = 'fa-solid fa-spinner fa-spin spinner';
+            control.appendChild(spinner);
+
+            const formData = new FormData();
+            formData.append("item_id", itemId);
+            formData.append("quantity", quantity);
+            fetchAction("{% url 'update_item_quantity' %}", "POST", formData)
+                .then(() => {
+                    showQuantityFeedback(itemId, "Quantity updated");
+                    input.dataset.lastValid = quantity;
+                })
+                .catch(err => {
+                    showQuantityFeedback(itemId, "Error: " + err.message, true);
+                    input.value = input.dataset.lastValid || 1;
+                })
+                .finally(() => {
+                    control.classList.remove('loading');
+                    input.disabled = false;
+                    control.querySelectorAll('button').forEach(btn => btn.disabled = false);
+                    control.removeChild(spinner);
+                });
+        }
+
+        function updateManualQuantity(itemId, quantity) {
+            const row = document.querySelector(`tr[data-item-id="${itemId}"]`);
+            const control = document.getElementById(`qty-control-${itemId}`);
+            const input = control.querySelector(".quantity-value");
+
+            // Show loading state
+            control.classList.add('loading');
+            input.disabled = true;
+            control.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+            // Add spinner
+            const spinner = document.createElement('i');
+            spinner.className = 'fa-solid fa-spinner fa-spin spinner';
+            control.appendChild(spinner);
+
+            // Send update request
+            const formData = new FormData();
+            formData.append("item_id", itemId);
+            formData.append("quantity", quantity);
+
+            fetchAction("{% url 'update_item_quantity' %}", "POST", formData)
+                .then(() => {
+                    showQuantityFeedback(itemId, "Quantity updated");
+                    input.dataset.lastValid = quantity;
+                    input.value = quantity;
+                })
+                .catch(err => {
+                    showQuantityFeedback(itemId, "Error: " + err.message, true);
+                    input.value = input.dataset.lastValid || 1;
+                })
+                .finally(() => {
+                    control.classList.remove('loading');
+                    input.disabled = false;
+                    control.querySelectorAll('button').forEach(btn => btn.disabled = false);
+                    control.removeChild(spinner);
+                });
+        }
+
+        function deleteSelected() {
+            const itemIds = Array.from(document.querySelectorAll(".delete-checkbox:checked"))
+                .map(cb => cb.closest("tr").dataset.itemId);
+            if (!itemIds.length) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Items Selected',
+                    text: 'Please select at least one item to delete.',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Delete Selected Items?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete them!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    itemIds.forEach(id => formData.append("item_ids[]", id));
+                    fetchAction("{% url 'delete_selected_items' %}", "POST", formData)
+                        .then(data => {
+                            itemIds.forEach(id => document.querySelector(`tr[data-item-id="${id}"]`).remove());
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: data.message || 'Selected items have been deleted.',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                // Refresh the page after clicking OK on the success message
+                                window.location.reload();
+                            });
+                        })
+                        .catch(err => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: err.message || 'Failed to delete items.',
+                                confirmButtonText: 'OK'
+                            });
+                        });
+                }
+            });
+        }
+
+        function requestForQuote() {
+            const button = document.getElementById('requestQuoteBtn');
+            // Disable button and show loading state
+            button.disabled = true;
+            button.classList.add('loading');
+            const spinner = document.createElement('i');
+            spinner.className = 'fa-solid fa-spinner fa-spin spinner';
+            button.appendChild(spinner);
+
+            fetchAction("{% url 'request_for_quote' list.id %}")
+                .then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Quote request submitted successfully',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        location.reload();
+                    });
+                })
+                .catch(err => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: err.message || 'Failed to submit quote request',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        location.reload();
+                    });
+                })
+                .finally(() => {
+                    // Re-enable button and remove spinner
+                    button.disabled = false;
+                    button.classList.remove('loading');
+                    button.removeChild(spinner);
+                });
+        }
+
+        function exportToExcel() { window.location.href = "{% url 'export_to_excel' list.id %}"; }
+        function downloadSpecifications() { window.location.href = "{% url 'download_specifications' list.id %}"; }
+        function downloadProductList() { window.location.href = "{% url 'download_product_list' list.id %}"; }
+        function shareList() {
+            fetchAction("{% url 'share_list' list.id %}", "GET")
+                .then(data => {
+                    navigator.clipboard.writeText(data.share_url);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Link Copied!',
+                        text: `Shareable link copied: ${data.share_url}`,
+                        confirmButtonText: 'OK'
+                    });
+                })
+                .catch(err => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: err.message || 'Failed to generate shareable link.',
+                        confirmButtonText: 'OK'
+                    });
+                });
+        }
+
+        function selectAll(checkbox) {
+            const isChecked = checkbox.checked;
+            document.querySelectorAll(".delete-checkbox").forEach(cb => cb.checked = isChecked);
+        }
+
+        function scrollToTop() { window.scrollTo({ top: 0, behavior: "smooth" }); }
+
+        function showModalAlert(message, type = "success") {
+            const alertDiv = document.getElementById("modalAlert");
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+            alertDiv.classList.remove("d-none");
+            setTimeout(() => alertDiv.classList.add("d-none"), 3000);
+        }
+
+        function openSettingsModal(listId, listName, isDefault, listNote) {
+            if (!isAuthenticated) return showModalAlert("Login required", "danger");
+            hasChanges = false;
+            const modal = new bootstrap.Modal(document.getElementById("settingsModal"));
+            modal.show();
+            const form = document.getElementById("listSettingsForm");
+            form.list_id.value = listId;
+            form.list_name.value = listName;
+            form.is_default.value = isDefault;
+            form.list_note.value = listNote;
+            form.duplicate_name.value = `${listName} COPY`;
+            const nameInput = form.list_name;
+            const warning = document.getElementById("defaultListWarning");
+            if (isDefault === true || isDefault === "true") {
+                nameInput.disabled = true;
+                warning.style.display = "block";
+            } else {
+                nameInput.disabled = false;
+                warning.style.display = "none";
+            }
+        }
+
+        function closeModal(refresh = false) {
+            document.querySelectorAll(".modal").forEach(m => bootstrap.Modal.getInstance(m)?.hide());
+            document.getElementById("listSettingsForm").reset();
+            document.getElementById("modalAlert").classList.add("d-none");
+            if (refresh || hasChanges) location.reload();
+        }
+
+        function updateList() {
+            if (!isAuthenticated) return showModalAlert("Login required", "danger");
+            const form = document.getElementById("listSettingsForm");
+            const formData = new FormData(form);
+            fetch("{% url 'edit_list' %}", {
+                method: "POST",
+                body: formData,
+                headers: { "X-CSRFToken": csrfToken },
+                credentials: "same-origin"
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    hasChanges = true;
+                    showModalAlert("List updated successfully", "success");
+                    setTimeout(() => closeModal(), 3000);
+                } else {
+                    showModalAlert(data.error || "An error occurred", "danger");
+                }
+            })
+            .catch(err => showModalAlert("An error occurred", "danger"));
+        }
+
+        function duplicateList() {
+            if (!isAuthenticated) return showModalAlert("Login required", "danger");
+            const form = document.getElementById("listSettingsForm");
+            const listId = form.elements['list_id'].value;
+            const duplicateName = form.elements['duplicate_name'].value.trim();
+            const formData = new FormData();
+            if (duplicateName) formData.append("duplicate_name", duplicateName);
+            fetch(`/lists/duplicate/${listId}/`, {
+                method: "POST",
+                body: formData,
+                headers: { "X-CSRFToken": csrfToken },
+                credentials: "same-origin"
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeModal(true);
+                } else {
+                    showModalAlert(data.error || "An error occurred", "danger");
+                }
+            })
+            .catch(err => showModalAlert("An error occurred", "danger"));
+        }
+
+        function deleteList() {
+            if (!isAuthenticated) return showModalAlert("Login required", "danger");
+            const form = document.getElementById("listSettingsForm");
+            const formData = new FormData();
+            formData.append("list_id", form.list_id.value);
+            fetch("{% url 'delete_list' %}", {
+                method: "POST",
+                body: formData,
+                headers: { "X-CSRFToken": csrfToken },
+                credentials: "same-origin"
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = "{% url 'home_list' %}";
+                } else {
+                    showModalAlert(data.error || "An error occurred", "danger");
+                }
+            })
+            .catch(err => showModalAlert("An error occurred", "danger"));
+        }
+
+        // Initialize last valid quantity for each input
+        document.querySelectorAll('.quantity-value').forEach(input => {
+            input.dataset.lastValid = input.value;
+        });
+
+        // Handle manual quantity input
+        document.querySelectorAll('.quantity-value').forEach(input => {
+            input.addEventListener('change', function() {
+                const itemId = this.closest('.quantity-control').id.replace('qty-control-', '');
+                const newQuantity = parseInt(this.value);
+                
+                // Validate input
+                if (isNaN(newQuantity) || newQuantity < 1) {
+                    showQuantityFeedback(itemId, "Quantity must be at least 1", true);
+                    this.value = this.dataset.lastValid || 1;
+                    return;
+                }
+
+                // Update quantity if different from last valid value
+                if (newQuantity !== parseInt(this.dataset.lastValid)) {
+                    updateManualQuantity(itemId, newQuantity);
+                }
+            });
+        });
+
+        document.getElementById("confirmDelete")?.addEventListener("change", function() {
+            document.querySelector(".btn-div a:last-child").classList.toggle("disabled", !this.checked);
+        });
+    </script>
+
+{% endblock %}

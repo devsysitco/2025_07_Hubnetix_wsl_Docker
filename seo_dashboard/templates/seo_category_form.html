@@ -1,0 +1,113 @@
+{% extends 'seo_dashboard_base.html' %}
+{% load static %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>{% if edit_mode %}Edit{% else %}Add{% endif %} Category SEO</h4>
+                <h6>{% if edit_mode %}Modify Existing{% else %}Create New{% endif %} SEO Details</h6>
+            </div>
+            <div class="action-buttons d-flex">
+                <a href="{% url 'seo_dashboard-category_list' %}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+            
+        </div>
+
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <form action="{% if edit_mode %}{% url 'seo_dashboard-category_edit' category.pk %}{% else %}{% url 'admin_dashboard-category_add' %}{% endif %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ form.name.label }}</label>
+                                {{ form.name }}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ form.slug.label }}</label>
+                                {{ form.slug }}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ form.short_description.label }}</label>
+                                {{ form.short_description }}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ form.detailed_description.label }}</label>
+                                {{ form.detailed_description }}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ form.meta_tags.label }}</label>
+                                {{ form.meta_tags }}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ form.meta_description.label }}</label>
+                                {{ form.meta_description }}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ form.canonical_url.label }}</label>
+                                {{ form.canonical_url }}
+                            </div>
+                        </div>
+
+                        {% for field in form %}
+                            {% if field.name in "icon,icon_alt,banner,banner_alt,side_image,side_image_alt" %}
+                                <div class="col-lg-12">
+                                    <div class="form-group">
+                                        <label>{{ field.label }}</label>
+                                        {% if edit_mode and field.name in "icon,banner,side_image" and field.value %}
+                                            <div class="mb-3">
+                                                <img src="{{ field.value.url }}" alt="Current {{ field.label }}" class="img-thumbnail" style="max-height: 150px;">
+                                            </div>
+                                        {% endif %}
+                                        {{ field }}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+                        <div class="col-lg-12">
+                            <button type="submit" class="btn btn-submit me-2">
+                                {% if edit_mode %}Update SEO{% else %}Add SEO{% endif %}
+                            </button>
+                            <a href="{% url 'seo_dashboard-category_list' %}" class="btn btn-cancel">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock body %}

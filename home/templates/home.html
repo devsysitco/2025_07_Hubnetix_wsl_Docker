@@ -1,0 +1,340 @@
+{% extends 'home_base.html' %}
+{% load static %}
+
+{% block meta_description %}This is a static meta description for this page.{% endblock %}
+{% block meta_keywords %}static, meta, keywords, example{% endblock %}
+{% block og_title %} Home | Hubnetix{% endblock %}
+{% block og_description %}This is a static Open Graph description for this page.{% endblock %}
+{% block og_image %}https://example.com/static-image.jpg{% endblock %}
+{% block title %} Home | Hubnetix{% endblock %}
+
+{% block extra_css %}
+<style>
+    a:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Swiper -->
+<div class="swiper mySwiper">
+    <div class="swiper-wrapper">
+        {% if slider_banners %}
+            {% for banner in slider_banners %}
+                <div class="swiper-slide">
+                    {% if banner.image %}
+                        <img src="{{ banner.image.url }}" alt="{{ banner.alt_text|default:'Banner Image' }}">
+                    {% else %}
+                        <img src="{% static 'home_assets/media/ban1.jpg' %}">
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="swiper-slide">
+                <img src="{% static 'home_assets/media/ban1.jpg' %}">
+            </div>
+            <div class="swiper-slide">
+                <img src="{% static 'home_assets/media/ban2.jpg' %}">
+            </div>
+            <div class="swiper-slide">
+                <img src="{% static 'home_assets/media/ban3.jpg' %}">
+            </div>
+            <div class="swiper-slide">
+                <img src="{% static 'home_assets/media/ban4.jpg' %}">
+            </div>
+            <div class="swiper-slide">
+                <img src="{% static 'home_assets/media/ban5.jpg' %}">
+            </div>
+            <div class="swiper-slide">
+                <img src="{% static 'home_assets/media/ban6.jpg' %}">
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<section class="slider-area">
+    <div class="container">
+        <div class="owl-theme owl-carousel">
+            <div class="item">
+                <div class="i-logo">
+                    <a href="{% url 'user_account-category_by_id' 1 %}">
+                        <img src="{% static 'home_assets/media/cat.svg' %}" alt="LANLINE">
+                    </a>
+                </div>
+            </div>
+            <div class="item">
+                <div class="i-logo">
+                    <a href="{% url 'user_account-category_by_id' 2 %}">
+                        <img src="{% static 'home_assets/media/cat5.svg' %}" alt="CABLINE">
+                    </a>
+                </div>
+            </div>
+            <div class="item">
+                <div class="i-logo">
+                    <a href="{% url 'user_account-category_by_id' 3 %}">
+                        <img src="{% static 'home_assets/media/cat4.svg' %}" alt="POWLINE">
+                    </a>
+                </div>
+            </div>
+            <div class="item">
+                <div class="i-logo">
+                    <a href="{% url 'user_account-category_by_id' 4 %}">
+                        <img src="{% static 'home_assets/media/cat3.svg' %}" alt="ACTLINE">
+                    </a>
+                </div>
+            </div>
+            <div class="item">
+                <div class="i-logo">
+                    <a href="{% url 'user_account-category_by_id' 5 %}">
+                        <img src="{% static 'home_assets/media/cat2.svg' %}" alt="SECLINE">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Latest Products and Innovation -->
+<section class="lap">
+    <div class="container">
+        <h2 class="title">Latest Products and Innovation</h2>
+
+        <div class="flex-area d-flex justify-content-between align-items-center flex-wrap">
+            <p class="mb-2 mb-md-0">Discover the newest products and groundbreaking innovations shaping the future.</p>
+            <a href="{% url 'user_account-latest_products' %}" class="km">
+                View More <i class="fa-solid fa-circle-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="row mt-4">
+            {% for product in latest_products %}
+                {% if product.categories.all %}
+                    {% with first_category=product.categories.all|first %}
+                        <div class="col-md-4 mb-4">
+                            <a href="{% url 'user_account-product_detail_view' category_slug=first_category.slug product_slug=product.slug %}" class="lap-card-link text-decoration-none text-dark">
+                                <div class="lap-card h-100">
+                                    <div class="lap-img mb-3">
+                                        {% if product.main_image %}
+                                            <img src="{{ product.main_image.url }}"
+                                                 alt="{{ product.main_image_alt|default:product.name }}"
+                                                 class="img-fluid">
+                                        {% else %}
+                                            <img src="{% static 'home_assets/media/lap-pro.png' %}"
+                                                 alt="Default product image"
+                                                 class="img-fluid">
+                                        {% endif %}
+                                    </div>
+                                    <h3>{{ product.name }}</h3>
+                                    <p>{{ product.detailed_description|truncatewords:20|safe }}</p>
+                                    {% if product.categories.all %}
+                                        {% with first_category=product.categories.all|first %}
+                                            <a href="{% url 'user_account-product_detail_view' category_slug=first_category.slug product_slug=product.slug %}">
+                                                Learn More
+                                            </a>
+                                        {% endwith %}
+                                    {% endif %}
+                                </div>
+                            </a>
+                        </div>
+                    {% endwith %}
+                {% endif %}
+            {% empty %}
+                <div class="col-12">
+                    <div class="text-center">
+                        <p>No latest products available at the moment.</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+
+<!-- About Banner Section -->
+{% if about_banner.image %}
+<section class="now position-relative">
+    <img src="{{ about_banner.image }}"
+         alt="{{ about_banner.alt_text|default:'From Now to Next Banner' }}"
+         class="section-image">
+    <div class="now-area">
+      <h2 class="title">
+        From Now to Next
+      </h2>
+      <p>
+        Hubnetix aims to be a world-class ICT brand, focusing on communication, quality, and reliability. We envision
+        contributing to a knowledge-driven society by delivering dynamic ICT solutions and ensuring 100% customer
+        satisfaction and growth across all sectors.
+      </p>
+      <a href="{% url 'home-about' %}" class="p-btn">
+        Explore About Us
+      </a>
+    </div>
+</section>
+{% else %}
+<section class="now position-relative">
+    <img src="{% static 'home_assets/media/n-ban.png' %}"
+         alt="From Now to Next Banner"
+         class="section-image">
+    <div class="now-area">
+      <h2 class="title">
+        From Now to Next
+      </h2>
+      <p>
+        Hubnetix aims to be a world-class ICT brand, focusing on communication, quality, and reliability. We envision
+        contributing to a knowledge-driven society by delivering dynamic ICT solutions and ensuring 100% customer
+        satisfaction and growth across all sectors.
+      </p>
+      <a href="{% url 'home-about' %}" class="p-btn">
+        Explore About Us
+      </a>
+    </div>
+</section>
+{% endif %}
+
+
+
+
+<!-- Featured Products -->
+<section class="lap">
+    <div class="container">
+        <h2 class="title">Featured Products</h2>
+
+        <div class="flex-area">
+            <p>Discover our featured products that redefine quality and performance.</p>
+            <a href="{% url 'user_account-featured_products' %}" class="km">View More <i class="fa-solid fa-circle-arrow-right"></i></a>
+        </div>
+
+        <div class="row mt-4">
+            {% for product in featured_products %}
+                {% if product.categories.all %}
+                    {% with first_category=product.categories.all|first %}
+                        <div class="col-4">
+                            <a href="{% url 'user_account-product_detail_view' category_slug=first_category.slug product_slug=product.slug %}" class="lap-card-link text-decoration-none text-dark">
+                                <div class="lap-card">
+                                    <div class="lap-img">
+                                        {% if product.main_image %}
+                                            <img src="{{ product.main_image.url }}"
+                                                 alt="{{ product.main_image_alt|default:product.name }}"
+                                                 class="img-fluid">
+                                        {% else %}
+                                            <img src="{% static 'home_assets/media/feat.png' %}"
+                                                 alt="Default featured product image"
+                                                 class="img-fluid">
+                                        {% endif %}
+                                    </div>
+                                    <h3>{{ product.name }}</h3>
+                                    <p>{{ product.detailed_description|truncatewords:20|safe }}</p>
+                                    {% if product.categories.all %}
+                                        {% with first_category=product.categories.all|first %}
+                                            <a href="{% url 'user_account-product_detail_view' category_slug=first_category.slug product_slug=product.slug %}">
+                                                Learn More
+                                            </a>
+                                        {% endwith %}
+                                    {% endif %}
+                                </div>
+                            </a>
+                        </div>
+                    {% endwith %}
+                {% endif %}
+            {% empty %}
+                <div class="col-12">
+                    <div class="text-center">
+                        <p>No featured products available at the moment.</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+
+<!-- Sustainability Banner Section -->
+{% if sustainability_banner.image %}
+<section class="now position-relative now2">
+    <img src="{{ sustainability_banner.image }}"
+         alt="{{ sustainability_banner.alt_text|default:'Sustainability Vision Banner' }}"
+         class="section-image">
+    <div class="now-area ">
+      <h2 class="title">
+        Advancing Our Sustainability Vision Forward
+      </h2>
+      <p>
+        At Hubnetix, we merge innovation with sustainability through eco-friendly practices and responsible resource
+        management...
+      </p>
+      <a href="{% url 'home-resources' %}" class="p-btn">
+        Know More
+      </a>
+    </div>
+</section>
+{% else %}
+<section class="now position-relative now2">
+    <img src="{% static 'home_assets/media/n2-ban.png' %}"
+         alt="Sustainability Vision Banner"
+         class="section-image">
+    <div class="now-area ">
+      <h2 class="title">
+        Advancing Our Sustainability Vision Forward
+      </h2>
+      <p>
+        At Hubnetix, we merge innovation with sustainability through eco-friendly practices and responsible resource
+        management...
+      </p>
+      <a href="{% url 'home-resources' %}" class="p-btn">
+        Know More
+      </a>
+    </div>
+</section>
+{% endif %}
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var swiper = new Swiper(".mySwiper", {
+        spaceBetween: 30,
+        autoplay: {
+            delay: 2500,
+            disableOnInteraction: true,
+        },
+        effect: "fade",
+        navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+        },
+        pagination: false
+    });
+
+    $('.slider-area .owl-carousel').owlCarousel({
+    loop: false, // Set loop to false
+    margin: 0,
+    autoplay: false, // Set autoplay to false
+    smartSpeed: 1000,
+    nav: false,
+    dots: false,
+    responsive: {
+        0: { items: 3 },
+        600: { items: 3 },
+        1000: { items: 5 }
+    }
+    });
+
+    $('.testi .owl-carousel').owlCarousel({
+        loop: true,
+        margin: 0,
+        autoplay: true,
+        smartSpeed: 1000,
+        nav: false,
+        responsive: {
+            0: { items: 1 },
+            600: { items: 3 },
+            1000: { items: 3 }
+        }
+    });
+</script>
+{% endblock %}

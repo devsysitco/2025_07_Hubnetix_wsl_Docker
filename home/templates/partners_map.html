@@ -1,0 +1,336 @@
+{% extends 'home_base.html' %}
+{% load static %}
+
+{% block meta_description %}This is a static meta description for this page.{% endblock %}
+{% block meta_keywords %}static, meta, keywords, example{% endblock %}
+{% block og_title %} Partners | Hubnetix{% endblock %}
+{% block og_description %}This is a static Open Graph description for this page.{% endblock %}
+{% block og_image %}https://example.com/static-image.jpg{% endblock %}
+{% block title %} Partners | Hubnetix{% endblock %}
+
+{% block content %}
+
+<style>
+    a:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+</style>
+
+<!-- Banner Section -->
+<section class="sub-banner-new">
+    <img class="full-width" src="{{ banner_url }}" alt="Partners Map">
+</section>
+
+<section class="support-area py-5">
+    <div class="container">
+        <div class="partner-content">
+            <h2 class="title mb-4">HUBNETIX Partner Network</h2>
+            <p class="lead mb-5">HUBNETIX connects with reliable and trusted regional and global partners who can design, install and deliver complete physical Infrastructure solutions for customers of all sizes. HUBNETIX Partner Network (HPN) is focused on helping our customers to solve the most complex application delivery challenges and ensure success which meets the needs of our customers.</p>
+
+            <!-- Search and Filter Section -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="locationSearch" placeholder="Search for partners by name or location...">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="officeTypeFilter">
+                        <option value="">All Office Types</option>
+                        <option value="headquarters">Headquarters</option>
+                        <option value="regional">Regional Office</option>
+                        <option value="branch">Branch Office</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Map and List Container -->
+            <div class="row">
+                <!-- Map Section -->
+                <div class="col-lg-7">
+                    <div id="map"></div>
+                    <div class="locations-count mt-2">
+                        <span id="locationCounter">2</span> locations found
+                    </div>
+                </div>
+
+                <!-- List Section -->
+                <div class="col-lg-5">
+                    <div id="locationsList" class="location-list overflow-auto" style="max-height: 600px;">
+                        <!-- Sample Location Items -->
+                        <div class="place">
+                            <img src="{% static 'home_assets/media/markers/hq-marker.png' %}" alt="HUBNETIX HQ">
+                            <div class="info">
+                                <h3>HUBNETIX Headquarters
+                                    <span class="office-type-badge badge-headquarters">headquarters</span>
+                                </h3>
+                                <p><i class="fas fa-map-marker-alt"></i> 123 Tech Street, Silicon Valley, CA</p>
+                                <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                                <p><i class="fas fa-envelope"></i> hq@hubnetix.com</p>
+                            </div>
+                        </div>
+
+                        <div class="place">
+                            <img src="{% static 'home_assets/media/markers/hq-marker.png' %}" alt="Dubai Office">
+                            <div class="info">
+                                <h3>HUBNETIX Dubai Office
+                                    <span class="office-type-badge badge-regional">regional</span>
+                                </h3>
+                                <p><i class="fas fa-map-marker-alt"></i> Dubai Internet City, Dubai, UAE</p>
+                                <p><i class="fas fa-phone"></i> +971 4 123 4567</p>
+                                <p><i class="fas fa-envelope"></i> dubai@hubnetix.com</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Styles -->
+<style>
+    {% include 'partners_map_styles.html' %}
+</style>
+
+<!-- Google Maps Integration -->
+<script>
+   // Store map and markers globally
+let map;
+let markers = [];
+
+// Define static paths for marker icons
+const markerIcons = {
+    headquarters: "{% static 'home_assets/media/markers/hq-marker.png' %}",
+    regional: "{% static 'home_assets/media/markers/regional-marker.png' %}",
+    branch: "{% static 'home_assets/media/markers/branch-marker.png' %}"
+};
+
+// Location data
+const locations = [
+    {
+        position: { lat: 37.7749, lng: -122.4194 }, // San Francisco
+        title: "HUBNETIX Headquarters",
+        type: "headquarters",
+        address: "123 Tech Street, Silicon Valley, CA",
+        phone: "+1 (555) 123-4567",
+        email: "hq@hubnetix.com",
+        image: "{% static 'images/office-hq.jpg' %}"
+    },
+    {
+        position: { lat: 25.2048, lng: 55.2708 }, // Dubai
+        title: "HUBNETIX Dubai Office",
+        type: "regional",
+        address: "Dubai Internet City, Dubai, UAE",
+        phone: "+971 4 123 4567",
+        email: "dubai@hubnetix.com",
+        image: "{% static 'images/office-dubai.jpg' %}"
+    }
+];
+
+// Custom marker style
+function createCustomMarker(type) {
+    return {
+        url: markerIcons[type] || markerIcons.branch, // Fallback to branch marker if type is undefined
+        scaledSize: new google.maps.Size(40, 40), // Adjust size as needed
+        origin: new google.maps.Point(0, 0),
+        anchor: new google.maps.Point(20, 40) // Anchor at bottom center of the image
+    };
+}
+
+// Initialize map
+function initMap() {
+    // Create map instance
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 25.2048, lng: 55.2708 },
+        zoom: 2,
+        styles: [
+            {
+                featureType: "all",
+                elementType: "labels.text.fill",
+                stylers: [{ color: "#333333" }]
+            },
+            {
+                featureType: "water",
+                elementType: "geometry",
+                stylers: [{ color: "#e9e9e9" }]
+            },
+            {
+                featureType: "landscape",
+                elementType: "geometry",
+                stylers: [{ color: "#f5f5f5" }]
+            }
+        ],
+        mapTypeControl: false,
+        fullscreenControl: false,
+        streetViewControl: false
+    });
+
+    // Info window for markers
+    const infoWindow = new google.maps.InfoWindow();
+
+    // Create markers
+    locations.forEach((location, index) => {
+        const marker = new google.maps.Marker({
+            position: location.position,
+            map: map,
+            title: location.title,
+            icon: createCustomMarker(location.type),
+            animation: google.maps.Animation.DROP
+        });
+
+        markers.push(marker);
+
+        // Create info window content
+        const content = `
+            <div class="info-window">
+                <h3>${location.title}</h3>
+                <p><i class="fas fa-map-marker-alt"></i> ${location.address}</p>
+                <p><i class="fas fa-phone"></i> ${location.phone}</p>
+                <p><i class="fas fa-envelope"></i> ${location.email}</p>
+            </div>
+        `;
+
+        // Add click listener to marker
+        marker.addListener("click", () => {
+            infoWindow.setContent(content);
+            infoWindow.open(map, marker);
+            highlightLocation(index);
+        });
+    });
+
+    // Add click handlers to location list items
+    setupLocationListHandlers();
+
+    // Setup search and filter handlers
+    setupSearchAndFilter();
+
+    // Initial count update
+    updateLocationCount();
+}
+
+// Setup location list click handlers
+function setupLocationListHandlers() {
+    const locationsList = document.getElementById('locationsList');
+    const places = locationsList.getElementsByClassName('place');
+
+    Array.from(places).forEach((place, index) => {
+        place.addEventListener('click', () => {
+            highlightLocation(index);
+        });
+    });
+}
+
+// Highlight selected location
+function highlightLocation(index) {
+    const places = document.getElementsByClassName('place');
+    
+    // Remove active class from all places
+    Array.from(places).forEach(p => p.classList.remove('active'));
+    
+    // Add active class to selected place
+    places[index].classList.add('active');
+
+    // Center map on selected location
+    map.panTo(locations[index].position);
+    map.setZoom(15);
+
+    // Animate marker
+    markers[index].setAnimation(google.maps.Animation.BOUNCE);
+    setTimeout(() => {
+        markers[index].setAnimation(null);
+    }, 1500);
+
+    // Scroll location into view
+    places[index].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Setup search and filter functionality
+function setupSearchAndFilter() {
+    const searchInput = document.getElementById('locationSearch');
+    const officeTypeFilter = document.getElementById('officeTypeFilter');
+
+    // Add event listeners
+    searchInput.addEventListener('input', filterLocations);
+    officeTypeFilter.addEventListener('change', filterLocations);
+}
+
+// Filter locations based on search and filter criteria
+function filterLocations() {
+    const searchInput = document.getElementById('locationSearch');
+    const officeTypeFilter = document.getElementById('officeTypeFilter');
+    const places = document.getElementsByClassName('place');
+    
+    const searchTerm = searchInput.value.toLowerCase();
+    const selectedType = officeTypeFilter.value.toLowerCase();
+    let visibleCount = 0;
+
+    // Filter locations
+    Array.from(places).forEach((place, index) => {
+        const locationInfo = locations[index];
+        const matchesSearch = locationInfo.title.toLowerCase().includes(searchTerm) ||
+                            locationInfo.address.toLowerCase().includes(searchTerm);
+        const matchesType = !selectedType || locationInfo.type === selectedType;
+
+        if (matchesSearch && matchesType) {
+            place.style.display = '';
+            markers[index].setMap(map);
+            visibleCount++;
+        } else {
+            place.style.display = 'none';
+            markers[index].setMap(null);
+        }
+    });
+
+    // Update counter and map bounds
+    updateLocationCount(visibleCount);
+    updateMapBounds();
+}
+
+// Update location counter
+function updateLocationCount(count = null) {
+    const locationCounter = document.getElementById('locationCounter');
+    if (count === null) {
+        count = document.querySelectorAll('.place:not([style*="display: none"])').length;
+    }
+    locationCounter.textContent = count;
+}
+
+// Update map bounds to show all visible markers
+function updateMapBounds() {
+    const bounds = new google.maps.LatLngBounds();
+    let hasVisibleMarkers = false;
+
+    markers.forEach((marker, index) => {
+        if (marker.getMap() !== null) {
+            bounds.extend(marker.getPosition());
+            hasVisibleMarkers = true;
+        }
+    });
+
+    if (hasVisibleMarkers) {
+        map.fitBounds(bounds);
+        if (map.getZoom() > 15) map.setZoom(15);
+    }
+}
+
+// Add error handling for Google Maps
+function handleMapError() {
+    const mapDiv = document.getElementById('map');
+    mapDiv.innerHTML = `
+        <div class="map-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Sorry, there was an error loading the map. Please try refreshing the page.</p>
+        </div>
+    `;
+}
+</script>
+
+<!-- Load Google Maps API -->
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzA-206XMmmD99RVU_6rn7WcAhKtWZO8s&callback=initMap">
+</script>
+
+{% endblock %}

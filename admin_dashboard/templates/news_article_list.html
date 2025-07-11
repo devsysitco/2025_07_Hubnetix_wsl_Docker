@@ -1,0 +1,193 @@
+{% extends 'admin_dashboard_base.html' %}
+{% load static %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>News Articles</h4>
+                <h6>Manage your news articles</h6>
+            </div>
+
+            <div class="page-btn">
+                <a href="{% url 'admin_dashboard-news_article_create' %}" class="btn btn-added">
+                    <img src="{% static 'assets/img/icons/plus.svg' %}" class="me-1" alt="Add News Article">Add News Article
+                </a>
+            </div>
+        </div>
+
+        <!-- Django Messages -->
+        <div id="django-messages-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <!-- Search and Filter Section -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <form method="get" class="d-flex">
+                            <input type="search" name="search" class="form-control me-2" 
+                                   placeholder="Search news articles..." 
+                                   value="{{ search_query }}">
+                            <button type="submit" class="btn btn-primary">Search</button>
+                        </form>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" 
+                                    data-bs-toggle="dropdown">
+                                Sort By: {{ sort_by }} ({{ order }})
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="?sort=title&order=asc">Title (Ascending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=title&order=desc">Title (Descending)</a></li>
+                                <li><a class="dropdown-item" href="?sort=date_published&order=desc">Newest First</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- News Articles Table -->
+                <div class="table-responsive">
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Date Published</th>
+                                <th>Active</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for article in news_articles %}
+                            <tr id="row-{{ article.id }}">
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ article.title }}</td>
+                                <td>{{ article.get_category_display }}</td>
+                                <td>{{ article.date_published|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if article.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a href="{% url 'admin_dashboard-news_article_details' article.pk %}" 
+                                                   class="dropdown-item">
+                                                    View Details
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="{% url 'admin_dashboard-news_article_edit' article.pk %}" 
+                                                   class="dropdown-item">
+                                                    Edit
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="#" 
+                                                   class="dropdown-item text-danger delete-article" 
+                                                   data-bs-toggle="modal" 
+                                                   data-bs-target="#deleteModal{{ article.id }}"
+                                                   data-article-id="{{ article.id }}">
+                                                    Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Delete Confirmation Modal -->
+                            <div class="modal fade" 
+                                 id="deleteModal{{ article.id }}" 
+                                 data-article-id="{{ article.id }}"
+                                 tabindex="-1" 
+                                 aria-labelledby="deleteModalLabel{{ article.id }}" 
+                                 aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteModalLabel{{ article.id }}">
+                                                Confirm Delete
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Are you sure you want to delete the news article "{{ article.title }}"?
+                                            <p class="text-danger">This action cannot be undone.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                Cancel
+                                            </button>
+                                            <form method="post" 
+                                                  action="{% url 'admin_dashboard-news_article_delete' article.pk %}"
+                                                  class="delete-article-form">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger">
+                                                    Confirm Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Controls -->
+                {% if total_articles > per_page %}
+                <nav>
+                    <ul class="pagination">
+                        {% if news_articles.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ news_articles.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in news_articles.paginator.page_range %}
+                            {% if news_articles.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if news_articles.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ news_articles.next_page_number }}">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock body %}

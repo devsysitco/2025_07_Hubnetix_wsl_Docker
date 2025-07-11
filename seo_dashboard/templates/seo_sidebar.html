@@ -1,0 +1,185 @@
+{% load static %}
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-inner slimscroll">
+      <div id="sidebar-menu" class="sidebar-menu">
+          <ul>
+              <!-- Main -->
+              <li class="submenu-open">
+                  <h6 class="submenu-hdr">Main</h6>
+                  <ul>
+                      <li>
+                          <a href="{% url 'seo_dashboard-dashboard' %}" id="dashboard-link">
+                              <i data-feather="grid"></i>
+                              <span>Dashboard</span>
+                          </a>
+                      </li>
+                  </ul>
+              </li>
+              
+              <!-- Catalog -->
+              <li class="submenu-open">
+                  <h6 class="submenu-hdr">Catalog</h6>
+                  <ul>
+                      <li>
+                          <a href="{% url 'seo_dashboard-category_list' %}" id="category-link">
+                              <i data-feather="folder"></i>
+                              <span>Category</span>
+                          </a>
+                      </li>
+                      <li>
+                          <a href="{% url 'seo_dashboard-products_list' %}" id="product-link">
+                              <i data-feather="box"></i>
+                              <span>Product</span>
+                          </a>
+                      </li>
+                    </ul>
+              </li>
+
+
+              <!-- Content -->
+              <li class="submenu-open">
+                <h6 class="submenu-hdr">Content</h6>
+                <ul>
+                  <li>
+                    <a href="{% url 'seo_dashboard-news_article_list' %}" id="news-link">
+                        <i data-feather="file-text"></i><span>News</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="{% url 'seo_dashboard-blog_post_list' %}" id="blog-link">
+                        <i data-feather="edit"></i><span>Blog</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="{% url 'seo_dashboard-project_list' %}" id="projects-link">
+                        <i data-feather="briefcase"></i><span>Projects</span>
+                    </a>
+                </li>
+                </ul>
+            </li>
+
+              <!-- Logout -->
+              <li class="submenu-open">
+                <ul>
+                    <li>
+                        <a href="{% url 'seo_dashboard-old_url_redirect_list' %}" id="redirect-link">
+                            <i data-feather="box"></i>
+                            <span>URL Redirection</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+                      
+        
+              <!-- Logout -->
+              <li class="submenu-open">
+                  <ul>
+                      <li>
+                          <a href="{% url 'seo_dashboard-logout' %}">
+                              <i data-feather="log-out"></i>
+                              <span>Logout</span>
+                          </a>
+                      </li>
+                  </ul>
+              </li>
+          </ul>
+      </div>
+  </div>
+</div>
+
+
+{% block extra_js %}
+
+<!-- Alert dismissal script -->
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+      setTimeout(() => {
+          document.querySelectorAll('.alert').forEach(alert => {
+              alert.classList.remove('show');
+              alert.classList.add('fade');
+              setTimeout(() => {
+                  alert.remove();
+              }, 500); // Allow time for fade-out effect
+          });
+      }, 2000); // 2 seconds delay
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // 1. Alert Dismissal Script
+    
+
+    // 2. Active Menu Handler with Scroll-to-Active
+    const currentUrl = window.location.href;
+    const sidebarLinks = document.querySelectorAll("#sidebar-menu a");
+    let activeLink = null;
+
+    sidebarLinks.forEach((link) => {
+      if (link.href === currentUrl) {
+        link.classList.add("active");
+        activeLink = link;
+      }
+    });
+
+    // Scroll to the active menu item if it exists
+    if (activeLink) {
+      const sidebarMenu = document.querySelector("#sidebar-menu");
+      const sidebarInner = document.querySelector(".sidebar-inner.slimscroll");
+      const activeLinkOffsetTop = activeLink.offsetTop;
+
+      if (sidebarInner) {
+        sidebarInner.scrollTo({
+          top: activeLinkOffsetTop - sidebarMenu.offsetTop,
+          behavior: "smooth",
+        });
+      }
+    }
+
+    // 3. Enhanced Scroll Persistence with Unified Functionality
+    const scrollableSections = document.querySelectorAll(".scrollable-section");
+    scrollableSections.forEach((section) => {
+      const scrollKey = `scrollPos_${section.id}`;
+
+      // Restore scroll position on page load
+      const savedScrollPos = sessionStorage.getItem(scrollKey);
+      if (savedScrollPos) {
+        section.scrollTop = savedScrollPos;
+      }
+
+      // Save scroll position on scroll event
+      section.addEventListener("scroll", () => {
+        sessionStorage.setItem(scrollKey, section.scrollTop);
+      });
+    });
+
+    // 4. Optimized Sidebar Scroll Solution with Performance Enhancements
+    const sidebarInner = document.querySelector(".sidebar-inner.slimscroll");
+    if (sidebarInner) {
+      let isScrolling;
+      sidebarInner.addEventListener("scroll", () => {
+        // Debounce scroll events for performance
+        window.clearTimeout(isScrolling);
+        isScrolling = setTimeout(() => {
+          console.log("Sidebar scrolling optimized");
+        }, 100);
+      });
+
+      // Initialize SlimScroll (if the library is included)
+      if (typeof SlimScroll !== "undefined") {
+        new SlimScroll(sidebarInner, {
+          height: "auto",
+          size: "6px",
+          color: "#ccc",
+          wheelStep: 10, // Adjust scroll speed
+        });
+      }
+    }
+
+    // Initialize Feather Icons
+    if (typeof feather !== "undefined") {
+      feather.replace();
+    }
+  });
+</script>
+{% endblock %}

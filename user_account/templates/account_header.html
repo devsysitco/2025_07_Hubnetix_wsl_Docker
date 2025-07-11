@@ -1,0 +1,47 @@
+{% load static %}
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'home-page' %}">
+                    <div class="logo">
+                        <img src="{% static 'home_assets/media/logo.svg' %}" alt="Logo">
+                    </div>
+                </a>
+
+                <button class="navbar-toggler" type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#navbarNav"
+                        aria-controls="navbarNav"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#"
+                            id="navbarDropdown" role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                                Products
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <a class="dropdown-item" href="{% url 'user_account-category_by_id' 1 %}">LANLINE</a>
+                                <a class="dropdown-item" href="{% url 'user_account-category_by_id' 2 %}">CABLINE</a>
+                                <a class="dropdown-item" href="{% url 'user_account-category_by_id' 3 %}">POWLINE</a>
+                                <a class="dropdown-item" href="{% url 'user_account-category_by_id' 4 %}">ACTLINE</a>
+                                <a class="dropdown-item" href="{% url 'user_account-category_by_id' 5 %}">SECLINE</a>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'home-support' %}">Support</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'home-partners' %}">Partners</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>

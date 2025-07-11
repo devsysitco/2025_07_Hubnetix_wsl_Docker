@@ -1,0 +1,415 @@
+{% include 'admin_dashboard_base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .messages-container {
+        margin-bottom: 20px;
+    }
+
+    .alert {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    #map-picker {
+        height: 400px;
+        width: 100%;
+        margin-top: 10px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+
+    .map-controls {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .coordinates-display {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .preview-image {
+        max-width: 200px;
+        max-height: 200px;
+        margin-top: 10px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>{% if edit_mode %}Edit{% else %}Add{% endif %} Office Location</h4>
+                <h6>{% if edit_mode %}Modify Existing{% else %}Create New{% endif %} Office Location</h6>
+            </div>
+            <div class="page-btn">
+                <a href="{% url 'admin_dashboard-office_location_list' %}" class="btn btn-added">
+                    <img src="{% static 'assets/img/icons/eye.svg' %}" class="me-1" alt="View Offices">View Offices
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <form action="{% if edit_mode %}{% url 'admin_dashboard-office_location_edit' office.pk %}{% else %}{% url 'admin_dashboard-office_location_create' %}{% endif %}" 
+                  method="POST" 
+                  enctype="multipart/form-data"
+                  id="officeLocationForm">
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Office Basic Information -->
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <label>{{ form.title.label }}</label>
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.title.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.title.help_text %}
+                                    <small class="form-text text-muted">{{ form.title.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <label>{{ form.office_country.label }}</label>
+                                {{ form.office_country }}
+                                {% if form.office_country.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.office_country.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.office_country.help_text %}
+                                    <small class="form-text text-muted">{{ form.office_country.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- New Partnership Type Field -->
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <label>{{ form.partnership_type.label }}</label>
+                                {{ form.partnership_type }}
+                                {% if form.partnership_type.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.partnership_type.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.partnership_type.help_text %}
+                                    <small class="form-text text-muted">{{ form.partnership_type.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <label>{{ form.phone.label }}</label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.phone.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.phone.help_text %}
+                                    <small class="form-text text-muted">{{ form.phone.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <label>{{ form.email.label }}</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.email.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.email.help_text %}
+                                    <small class="form-text text-muted">{{ form.email.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ form.address.label }}</label>
+                                {{ form.address }}
+                                {% if form.address.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.address.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.address.help_text %}
+                                    <small class="form-text text-muted">{{ form.address.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Map Section -->
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">Location on Map</label>
+                                <div class="map-controls">
+                                    <input type="text" id="map-search" class="form-control" placeholder="Search for a location...">
+                                    <button type="button" id="currentLocationBtn" class="btn btn-secondary mt-2">
+                                        <i class="fas fa-location-arrow"></i> Use Current Location
+                                    </button>
+                                </div>
+                                <div id="map-picker"></div>
+                                <div class="coordinates-display">
+                                    Selected coordinates: <span id="selected-coordinates">None selected</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden Coordinate Fields -->
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <label>{{ form.latitude.label }}</label>
+                                {{ form.latitude }}
+                                {% if form.latitude.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.latitude.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <label>{{ form.longitude.label }}</label>
+                                {{ form.longitude }}
+                                {% if form.longitude.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.longitude.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Office Image -->
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{{ form.image.label }}</label>
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        {% if edit_mode and office.image %}
+                                            <div class="mb-3">
+                                                <img src="{{ office.image.url }}" 
+                                                     alt="Current Office Image" 
+                                                     class="preview-image" 
+                                                     id="currentImage">
+                                            </div>
+                                        {% endif %}
+                                        {{ form.image }}
+                                        <div id="imagePreview" class="mt-2" style="display: none;">
+                                            <img src="" alt="Image Preview" class="preview-image" id="previewImage">
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if form.image.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.image.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.image.help_text %}
+                                    <small class="form-text text-muted">{{ form.image.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="col-lg-12">
+                            <button type="submit" class="btn btn-submit me-2">
+                                {% if edit_mode %}Update Office{% else %}Add Office{% endif %}
+                            </button>
+                            <a href="{% url 'admin_dashboard-office_location_list' %}" class="btn btn-cancel">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBzA-206XMmmD99RVU_6rn7WcAhKtWZO8s&libraries=places"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('officeLocationForm');
+    const latitudeInput = document.getElementById('id_latitude');
+    const longitudeInput = document.getElementById('id_longitude');
+    const searchInput = document.getElementById('map-search');
+    const coordinatesDisplay = document.getElementById('selected-coordinates');
+    const imageInput = document.getElementById('id_image');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImage = document.getElementById('previewImage');
+
+    let defaultLat = {{ office.latitude|default:0 }};
+    let defaultLng = {{ office.longitude|default:0 }};
+
+    const map = new google.maps.Map(document.getElementById('map-picker'), {
+        center: { lat: defaultLat, lng: defaultLng },
+        zoom: 13,
+        streetViewControl: false,
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+            style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+        }
+    });
+
+    let marker = new google.maps.Marker({
+        position: { lat: defaultLat, lng: defaultLng },
+        map: map,
+        draggable: true
+    });
+
+    const autocomplete = new google.maps.places.Autocomplete(searchInput);
+    autocomplete.bindTo('bounds', map);
+
+    marker.addListener('dragend', function(event) {
+        updateCoordinates(event.latLng.lat(), event.latLng.lng());
+    });
+
+    map.addListener('click', function(event) {
+        marker.setPosition(event.latLng);
+        updateCoordinates(event.latLng.lat(), event.latLng.lng());
+    });
+
+    autocomplete.addListener('place_changed', function() {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) return;
+
+        if (place.geometry.viewport) {
+            map.fitBounds(place.geometry.viewport);
+        } else {
+            map.setCenter(place.geometry.location);
+            map.setZoom(17);
+        }
+
+        marker.setPosition(place.geometry.location);
+        updateCoordinates(place.geometry.location.lat(), place.geometry.location.lng());
+    });
+
+    document.getElementById('currentLocationBtn').addEventListener('click', function() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    };
+                    map.setCenter(pos);
+                    marker.setPosition(pos);
+                    updateCoordinates(pos.lat, pos.lng);
+                },
+                () => {
+                    alert("Error: The Geolocation service failed.");
+                }
+            );
+        } else {
+            alert("Error: Your browser doesn't support geolocation.");
+        }
+    });
+
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    }
+
+    function updateCoordinates(lat, lng) {
+        lat = Math.round(lat * 1000000) / 1000000;
+        lng = Math.round(lng * 1000000) / 1000000;
+        latitudeInput.value = lat;
+        longitudeInput.value = lng;
+        coordinatesDisplay.textContent = `Latitude: ${lat}, Longitude: ${lng}`;
+    }
+
+    form.addEventListener('submit', function(e) {
+        if (!latitudeInput.value || !longitudeInput.value) {
+            e.preventDefault();
+            alert('Please select a location on the map.');
+            return false;
+        }
+    });
+
+    if (latitudeInput.value && longitudeInput.value) {
+        updateCoordinates(parseFloat(latitudeInput.value), parseFloat(longitudeInput.value));
+        const position = new google.maps.LatLng(parseFloat(latitudeInput.value), parseFloat(longitudeInput.value));
+        map.setCenter(position);
+        marker.setPosition(position);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends 'seo_dashboard_base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .messages-container {
+        margin-bottom: 20px;
+    }
+
+    .alert {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>{% if edit_mode %}Edit{% else %}Add{% endif %} URL Redirect</h4>
+                <h6>{% if edit_mode %}Modify Existing{% else %}Create New{% endif %} URL Redirect</h6>
+            </div>
+            <div class="action-buttons d-flex">
+                <a href="{% url 'seo_dashboard-old_url_redirect_list' %}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+            
+        </div>
+
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <form action="{% if edit_mode %}{% url 'seo_dashboard-old_url_redirect_edit' redirect_entry.pk %}{% else %}{% url 'seo_dashboard-old_url_redirect_create' %}{% endif %}" method="POST">
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>Old Slug</label>
+                                {{ form.old_slug }}
+                                {% if form.old_slug.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.old_slug.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>New Slug</label>
+                                {{ form.new_slug }}
+                                {% if form.new_slug.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.new_slug.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>URL Type</label>
+                                {{ form.url_type }}
+                                {% if form.url_type.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.url_type.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-lg-12">
+                                <button type="submit" class="btn btn-submit me-2">
+                                    {% if edit_mode %}Update Redirect{% else %}Add Redirect{% endif %}
+                                </button>
+                                <a href="{% url 'seo_dashboard-old_url_redirect_list' %}" class="btn btn-cancel">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock body %}

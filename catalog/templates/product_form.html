@@ -1,0 +1,490 @@
+{% include 'admin_dashboard_base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+<style>
+/* In static/css/custom.css */
+.select2-container {
+    width: 100% !important;
+    display: block !important;
+}
+.select2-selection--multiple {
+    min-height: 38px;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+.select2-selection--multiple .select2-selection__rendered {
+    width: 100% !important;
+    padding: 0.375rem 0.75rem;
+    line-height: 1.5;
+}
+.select2-selection--multiple .select2-selection__placeholder {
+    color: #6c757d;
+}
+.select2-container--bootstrap4 .select2-selection--multiple.is-invalid {
+    border-color: #dc3545;
+}
+.select2-container--bootstrap4 .select2-selection--multiple.is-invalid ~ .invalid-feedback {
+    display: block;
+}
+.select2-dropdown {
+    z-index: 1050 !important;
+}
+
+/* CKEditor styles */
+.ck-editor__editable {
+    min-height: 200px;
+    max-height: 400px;
+    overflow-y: auto !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+.ck.ck-editor {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+.ck-content {
+    font-size: 16px;
+    padding: 10px !important;
+}
+.spec-editor .ck-editor__editable {
+    min-height: 100px;
+    max-height: 200px;
+}
+.editor-container {
+    margin-bottom: 20px;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>{% if edit_mode %}Edit{% else %}Add{% endif %} Product</h4>
+                <h6>{% if edit_mode %}Modify Existing{% else %}Create New{% endif %} Product</h6>
+            </div>
+        </div>
+
+        <!-- Product Form -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <form id="productForm" action="{% if edit_mode %}{% url 'admin_dashboard-product_edit' pk=product.pk %}{% else %}{% url 'admin_dashboard-product_add' %}{% endif %}" 
+                      method="post" 
+                      enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <!-- Left Column -->
+                        <!-- Left Column -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.name.label_tag }}
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.name.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.short_description.label_tag }}
+                                {{ form.short_description }}
+                                {% if form.short_description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.short_description.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.detailed_description.label_tag }}
+                                <div class="editor-container">
+                                    <textarea class="form-control" id="id_detailed_description" name="detailed_description">{{ form.detailed_description.value|default_if_none:'' }}</textarea>
+                                </div>
+                                {% if form.detailed_description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.detailed_description.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Product Status Section -->
+                            <div class="mb-3">
+                                <label class="form-label">Product Status</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            {{ form.is_latest }}
+                                            {{ form.is_latest.label_tag }}
+                                            
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            {{ form.is_featured }}
+                                            {{ form.is_featured.label_tag }}
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if form.is_latest.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.is_latest.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.is_featured.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.is_featured.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Specifications Section -->
+                            <div class="mb-3">
+                                <label class="form-label">Product Specifications</label>
+                                <div id="specificationsContainer">
+                                    <!-- Dynamic specification rows will be added here -->
+                                </div>
+                                <button type="button" class="btn btn-secondary mt-2" id="addSpecificationBtn">
+                                    <i class="fas fa-plus"></i> Add Specification
+                                </button>
+                                {% if form.specifications.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.specifications.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {{ form.specifications }}
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-md-6">
+                            <div ASUS ROG Strix G16 (2024) Gaming Laptop, 16” Nebula Display 16:10 QHD 240Hz, NVIDIA® GeForce RTX™ 4070, Intel® Core™ i9-14900HX, 16GB DDR5-5600, 1TB PCIe Gen4 SSD, Wi-Fi 6E, Windows 11 Home, G614JIR-AS94mb-3">
+                                {{ form.categories.label_tag }}
+                                {{ form.categories }}
+                                {% if form.categories.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.categories.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.quantity_in_stock.label_tag }}
+                                {{ form.quantity_in_stock }}
+                                {% if form.quantity_in_stock.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.quantity_in_stock.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.measurement.label_tag }}
+                                {{ form.measurement }}
+                                {% if form.measurement.help_text %}
+                                    <small class="form-text text-muted">{{ form.measurement.help_text }}</small>
+                                {% endif %}
+                                {% if form.measurement.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.measurement.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.main_image.label_tag }}
+                                {{ form.main_image }}
+                                {% if form.main_image.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.main_image.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if product.main_image %}
+                                    <div class="mt-2">
+                                        <img src="{{ product.main_image.url }}" alt="Current main image" class="img-thumbnail" style="max-height: 100px;">
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.additional_images.label_tag }}
+                                {{ form.additional_images }}
+                                {% if form.additional_images.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.additional_images.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if existing_images %}
+                                    <div class="mt-2">
+                                        {% for image in existing_images %}
+                                            <div class="d-inline-block position-relative me-2 mb-2">
+                                                <img src="{{ image.product_image.url }}" alt="Product image" class="img-thumbnail" style="max-height: 100px;">
+                                                <div class="form-check position-absolute top-0 end-0">
+                                                    <input type="checkbox" name="images_to_remove" value="{{ image.id }}" class="form-check-input bg-danger">
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.additional_documents.label_tag }}
+                                {{ form.additional_documents }}
+                                {% if form.additional_documents.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.additional_documents.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if existing_documents %}
+                                    <div class="mt-2">
+                                        {% for doc in existing_documents %}
+                                            <div class="d-flex align-items-center mb-2">
+                                                <div class="form-check me-2">
+                                                    <input type="checkbox" name="documents_to_remove" value="{{ doc.id }}" class="form-check-input">
+                                                </div>
+                                                <a href="{{ doc.document.url }}" target="_blank" class="text-decoration-none">
+                                                    <i class="fas fa-file me-1"></i>{{ doc.title }}
+                                                </a>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            {% if edit_mode %}Update{% else %}Add{% endif %} Product
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.ckeditor.com/ckeditor5/37.0.0/classic/ckeditor.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#id_categories').select2({
+        theme: 'bootstrap4',
+        placeholder: 'Select categories',
+        allowClear: true,
+        multiple: true
+    });
+
+    // Initialize CKEditor for detailed description
+    let detailedDescriptionEditor;
+    ClassicEditor
+        .create(document.querySelector('#id_detailed_description'), {
+            toolbar: [
+                'heading', '|',
+                'bold', 'italic', 'underline', 'strikethrough', '|',
+                'bulletedList', 'numberedList', '|',
+                'link', 'blockQuote', '|',
+                'undo', 'redo'
+            ],
+            heading: {
+                options: [
+                    { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                    { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                    { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                    { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+                ]
+            },
+            placeholder: 'Enter detailed description...',
+        })
+        .then(editor => {
+            detailedDescriptionEditor = editor;
+            editor.model.document.on('change:data', () => {
+                document.querySelector('#id_detailed_description').value = editor.getData();
+            });
+        })
+        .catch(error => {
+            console.error('CKEditor initialization error:', error);
+        });
+
+    // Specifications handling
+    const specificationsContainer = $('#specificationsContainer');
+    const addSpecificationBtn = $('#addSpecificationBtn');
+    const specificationsInput = $('#id_specifications');
+    const editors = new Map(); // Store CKEditor instances for specification values
+
+    function createSpecificationRow(title = '', value = '') {
+        const rowId = 'spec-' + Date.now();
+        const row = $(`
+            <div class="specification-row mb-3" id="${rowId}">
+                <div class="row">
+                    <div class="col-md-5">
+                        <input type="text" class="form-control spec-title" placeholder="Specification Title" value="${escapeHtml(title)}">
+                    </div>
+                    <div class="col-md-6">
+                        <div class="editor-container spec-editor">
+                            <textarea class="form-control spec-value" placeholder="Specification Value">${escapeHtml(value)}</textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-danger btn-sm remove-spec">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `);
+
+        // Initialize CKEditor for the value field
+        const textarea = row.find('.spec-value')[0];
+        ClassicEditor
+            .create(textarea, {
+                toolbar: [
+                    'bold', 'italic', 'underline', '|',
+                    'bulletedList', 'numberedList', '|',
+                    'undo', 'redo'
+                ],
+                placeholder: 'Enter specification value...',
+            })
+            .then(editor => {
+                editors.set(rowId, editor);
+                if (value) {
+                    editor.setData(value);
+                }
+                editor.model.document.on('change:data', updateSpecificationsData);
+            })
+            .catch(error => {
+                console.error('CKEditor initialization error for spec:', error);
+            });
+
+        // Add event listeners
+        row.find('.remove-spec').on('click', function() {
+            const editor = editors.get(rowId);
+            if (editor) {
+                editor.destroy();
+                editors.delete(rowId);
+            }
+            row.remove();
+            updateSpecificationsData();
+        });
+
+        row.find('.spec-title').on('input', updateSpecificationsData);
+
+        return row;
+    }
+
+    function updateSpecificationsData() {
+        const specifications = [];
+        
+        $('.specification-row').each(function() {
+            const rowId = $(this).attr('id');
+            const title = $(this).find('.spec-title').val().trim();
+            const editor = editors.get(rowId);
+            const value = editor ? editor.getData().trim() : '';
+            
+            if (title && value) {
+                specifications.push({
+                    title: title,
+                    value: value
+                });
+            }
+        });
+
+        specificationsInput.val(JSON.stringify(specifications));
+    }
+
+    function escapeHtml(unsafe) {
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // Add specification button click handler
+    addSpecificationBtn.on('click', function() {
+        specificationsContainer.append(createSpecificationRow());
+    });
+
+    // Initialize existing specifications if any
+    const existingSpecs = {{ specifications_json|default:'[]'|safe }};
+    if (existingSpecs.length > 0) {
+        existingSpecs.forEach(spec => {
+            specificationsContainer.append(createSpecificationRow(spec.title, spec.value));
+        });
+    } else {
+        // Add one empty row by default
+        specificationsContainer.append(createSpecificationRow());
+    }
+
+    // Form submission handling
+    $('#productForm').on('submit', function(e) {
+        updateSpecificationsData();
+        
+        // Basic validation
+        if ($('.specification-row').length === 0) {
+            e.preventDefault();
+            alert('Please add at least one specification');
+            return false;
+        }
+
+        let isValid = true;
+        $('.specification-row').each(function() {
+            const rowId = $(this).attr('id');
+            const title = $(this).find('.spec-title').val().trim();
+            const editor = editors.get(rowId);
+            const value = editor ? editor.getData().trim() : '';
+
+            if (!title || !value) {
+                isValid = false;
+                return false;
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all specification fields');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

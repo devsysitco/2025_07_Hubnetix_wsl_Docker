@@ -1,0 +1,202 @@
+{% include 'admin_dashboard_base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .messages-container {
+        margin-bottom: 20px;
+    }
+
+    .alert {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>{% if edit_mode %}Edit{% else %}Add{% endif %} Resource</h4>
+                <h6>{% if edit_mode %}Modify Existing{% else %}Create New{% endif %} Resource</h6>
+            </div>
+            <div class="page-btn">
+                <a href="{% url 'admin_dashboard-resource_list' %}" class="btn btn-added">
+                    <img src="{% static 'assets/img/icons/eye.svg' %}" class="me-1" alt="View Resources">View Resources
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <form action="{% if edit_mode %}{% url 'admin_dashboard-resource_edit' resource.pk %}{% else %}{% url 'admin_dashboard-resource_create' %}{% endif %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ form.title.label }}</label>
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.title.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.title.help_text %}
+                                    <small class="form-text text-muted">{{ form.title.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ form.description.label }}</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.description.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.description.help_text %}
+                                    <small class="form-text text-muted">{{ form.description.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ form.resource_type.label }}</label>
+                                {{ form.resource_type }}
+                                {% if form.resource_type.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.resource_type.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.resource_type.help_text %}
+                                    <small class="form-text text-muted">{{ form.resource_type.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{{ form.file.label }}</label>
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        {% if edit_mode and resource.file %}
+                                            <div class="mb-3">
+                                                {% if resource.resource_type == 'IMAGE' %}
+                                                    <img src="{{ resource.file.url }}" 
+                                                         alt="Current Resource File" 
+                                                         class="img-thumbnail" 
+                                                         style="max-height: 150px;">
+                                                {% else %}
+                                                    <p>Current file: <a href="{{ resource.file.url }}" target="_blank">{{ resource.file.name }}</a></p>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                        {{ form.file }}
+                                        {% if form.file.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.file.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        {% if form.file.help_text %}
+                                            <small class="form-text text-muted">{{ form.file.help_text }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <button type="submit" class="btn btn-submit me-2">
+                                {% if edit_mode %}Update Resource{% else %}Add Resource{% endif %}
+                            </button>
+                            <a href="{% url 'admin_dashboard-resource_list' %}" class="btn btn-cancel">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if form.media %}
+    {{ form.media }}
+{% endif %}
+
+<script>
+    // Preview file when selected
+    document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const resourceType = document.querySelector('#id_resource_type').value;
+        
+        if (file && resourceType === 'IMAGE') {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.createElement('img');
+                preview.src = e.target.result;
+                preview.className = 'img-thumbnail mt-2';
+                preview.style.maxHeight = '150px';
+                
+                const previewContainer = document.querySelector('.card-body');
+                const existingPreview = previewContainer.querySelector('img.img-thumbnail');
+                if (existingPreview) {
+                    existingPreview.remove();
+                }
+                previewContainer.appendChild(preview);
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Update file preview when resource type changes
+    document.querySelector('#id_resource_type').addEventListener('change', function(e) {
+        const preview = document.querySelector('img.img-thumbnail');
+        if (preview) {
+            preview.style.display = e.target.value === 'IMAGE' ? 'block' : 'none';
+        }
+    });
+</script>
+
+{% endblock body %}

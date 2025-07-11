@@ -1,0 +1,144 @@
+{% extends 'admin_dashboard_base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+<style>
+    /* Contact Submission Details Styling */
+    .contact-submission-details-container {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .contact-bar-info-list {
+        list-style-type: none;
+        padding: 0;
+    }
+    .contact-bar-info-list li {
+        margin-bottom: 15px;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+    .contact-bar-info-list li h4 {
+        color: #6c757d;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    .contact-bar-info-list li h6 {
+        color: #333;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Contact Submission Details</h4>
+                <h6>Comprehensive contact submission information</h6>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="messages-container mb-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-lg-12 col-sm-12">
+                <div class="card contact-submission-details-container">
+                    <div class="card-body">
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-end mb-3">
+                            <!-- <a href="{% url 'admin_dashboard-contact_submission_list' %}" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a> -->
+                            <a href="#" 
+                               class="btn btn-outline-danger" 
+                               data-bs-toggle="modal" 
+                               data-bs-target="#deleteModal"
+                               data-delete-url="{% url 'admin_dashboard-contact_submission_delete' submission.pk %}"
+                               data-submission-full-name="{{ submission.full_name }}">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </div>
+
+                        
+                        <ul class="contact-bar-info-list">
+                            <li>
+                                <h4>Full Name</h4>
+                                <h6>{{ submission.full_name }}</h6>
+                            </li><hr>
+                            <li>
+                                <h4>Email</h4>
+                                <h6>{{ submission.email }}</h6>
+                            </li><hr>
+                            <li>
+                                <h4>Phone</h4>
+                                <h6>{{ submission.phone }}</h6>
+                            </li><hr>
+                            <li>
+                                <h4>Message</h4>
+                                <h6>{{ submission.message }}</h6>
+                            </li><hr>
+                            <li>
+                                <h4>Created At</h4>
+                                <h6>{{ submission.created_at|date:"F d, Y H:i" }}</h6>
+                            </li><hr>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this contact submission?
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="delete-form" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteForm = document.getElementById('delete-form');
+
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const deleteUrl = button.getAttribute('data-delete-url');
+        const submissionFullName = button.getAttribute('data-submission-full-name');
+
+        deleteForm.action = deleteUrl;
+        const modalBody = deleteModal.querySelector('.modal-body');
+        modalBody.textContent = `Are you sure you want to delete the contact submission from "${submissionFullName}"?`;
+    });
+});
+</script>
+{% endblock %}

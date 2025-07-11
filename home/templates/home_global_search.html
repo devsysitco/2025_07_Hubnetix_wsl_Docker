@@ -1,0 +1,486 @@
+{% load static %}
+
+<style>
+#searchResults {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 320px;
+  max-height: 300px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+  z-index: 1000;
+  margin-top: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1
+}
+
+#searchResults::-webkit-scrollbar {
+  width: 8px
+}
+
+#searchResults::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px
+}
+
+#searchResults::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px
+}
+
+.search-results-container {
+  padding: 5px
+}
+
+.search-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #666;
+  font-size: 12px
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  text-decoration: none;
+  color: #333;
+  transition: background-color .2s;
+  cursor: pointer;
+}
+
+.search-result-item:hover {
+  background-color: #f5f5f5
+}
+
+.search-result-icon {
+  margin-right: 10px;
+  color: #4a4a4a;
+  font-size: 14px
+}
+
+.search-result-content {
+  flex-grow: 1;
+  overflow: hidden
+}
+
+.search-result-content h4 {
+  margin: 0;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis
+}
+
+.search-result-meta {
+  color: #666;
+  font-size: 11px;
+  margin-top: 3px
+}
+
+.search-result-type {
+  margin-left: auto;
+  background-color: #e0e0e0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px
+}
+
+.search-loading,
+.search-no-results,
+.search-error {
+  text-align: center;
+  padding: 15px;
+  color: #666;
+  font-size: 13px
+}
+
+.search-loading .spinner {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px
+}
+
+#mobileSearchResults {
+  position: absolute;
+  top: calc(100% + 55px);
+  left: 0;
+  width: 100%;
+  max-height: 250px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+  z-index: 1000;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1
+}
+
+#mobileSearchResults::-webkit-scrollbar {
+  width: 8px
+}
+
+#mobileSearchResults::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px
+}
+
+#mobileSearchResults::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px
+}
+
+.category-list li a.active,
+.brand-list li a.active {
+  font-weight: 500;
+  color: var(--pc);
+}
+
+.form-check-label {
+  color: white;
+  font-size: .8rem;
+  margin-left: 5px;
+  margin-top: 0
+}
+
+.search-result-item.datasheet {
+    background-color: #f8f9fa;
+}
+
+.search-result-item.datasheet .search-result-content small {
+    display: block;
+    color: #6c757d;
+    font-size: 0.8em;
+    margin-top: 2px;
+}
+
+.has-datasheet {
+    margin-left: 8px;
+    color: #dc3545;
+}
+
+.search-result-icon .fa-file-pdf {
+    color: #dc3545;
+}
+
+.search-result-item.datasheet .btn-download {
+    padding: 4px 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 4px;
+    margin-top: 5px;
+    display: inline-block;
+}
+
+.search-result-item.datasheet .btn-download i {
+    margin-right: 4px;
+}
+
+.datasheet-buttons {
+    margin-top: 5px;
+}
+
+.datasheet-buttons .btn {
+    margin-right: 5px;
+}
+
+@media (max-width:768px) {
+  #mobileSearchResults .search-result-item {
+      padding: 12px
+  }
+
+  #mobileSearchResults .search-result-content h4 {
+      font-size: 12px
+  }
+
+  #mobileSearchResults .search-result-meta {
+      font-size: 12px
+  }
+
+  #mobileSearchResults .search-results-header {
+      padding: 12px;
+      font-size: 13px
+  }
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    // Initialize selectors for desktop and mobile
+    const $desktopSearchInput = $('.search-text');
+    const $mobileSearchInput = $('#searchBox');
+    const $desktopSearchResults = $('#searchResults');
+    const $mobileSearchResults = $('#mobileSearchResults');
+    const $searchBtn = $('.search-btn');
+
+    console.log('Search functionality initialized');
+
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    const performSearch = debounce(function(inputElement, resultsContainer) {
+        const query = inputElement.val().trim();
+
+        if (query.length < 2) {
+            resultsContainer.empty().hide();
+            return;
+        }
+
+        $.ajax({
+            url: '/optimized_search/',
+            method: 'GET',
+            data: { q: query },
+            beforeSend: function() {
+                resultsContainer.html(`
+                    <div class="search-loading">
+                        <div class="spinner"></div>
+                        <p>Searching...</p>
+                    </div>
+                `);
+                resultsContainer.show();
+            },
+            success: function(data) {
+                const sortedData = data.sort((a, b) => {
+                    const typeOrder = { 'category': 1, 'product': 2, 'datasheet': 3 };
+                    return typeOrder[a.type] - typeOrder[b.type];
+                });
+
+                if (sortedData.length === 0) {
+                    resultsContainer.html(`
+                        <div class="search-no-results">
+                            <i class="fas fa-search-minus"></i>
+                            <p>No results found</p>
+                            <small>Try a different search term</small>
+                        </div>
+                    `);
+                    return;
+                }
+
+                const resultsHtml = sortedData.map(item => {
+                    let icon, url, content;
+
+                    switch(item.type) {
+                        case 'product':
+                            icon = '<i class="fas fa-box"></i>';
+                            url = `/${item.category_slug}/${item.name_slug}/`;
+                            content = `
+                                <h4>${item.name}</h4>
+                                ${item.has_datasheet ? '<span class="has-datasheet"><i class="fas fa-file-pdf"></i> Datasheet Available</span>' : ''}
+                            `;
+                            return `
+                                <a href="${url}" class="search-result-item ${item.type}">
+                                    <div class="search-result-icon">
+                                        ${icon}
+                                    </div>
+                                    <div class="search-result-content">
+                                        ${content}
+                                    </div>
+                                    <div class="search-result-type">
+                                        ${item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                                    </div>
+                                </a>
+                            `;
+                        case 'category':
+                            icon = '<i class="fas fa-layer-group"></i>';
+                            url = `/${item.name_slug}/`;
+                            content = `<h4>${item.name}</h4>`;
+                            return `
+                                <a href="${url}" class="search-result-item ${item.type}">
+                                    <div class="search-result-icon">
+                                        ${icon}
+                                    </div>
+                                    <div class="search-result-content">
+                                        ${content}
+                                    </div>
+                                    <div class="search-result-type">
+                                        ${item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                                    </div>
+                                </a>
+                            `;
+                        case 'datasheet':
+                            icon = '<i class="fas fa-file-pdf"></i>';
+                            url = `/${item.category_slug}/${item.product_slug}/`;
+                            content = `
+                                <h4>${item.name}</h4>
+                                <small>Product: ${item.product_name}</small>
+                                <div class="datasheet-buttons">
+                                    ${item.file_url ? `
+                                        <a class="btn btn-primary btn-sm btn-download" 
+                                           href="${item.file_url}" 
+                                           download 
+                                           aria-label="Download datasheet for ${item.name}"
+                                           onclick="event.stopPropagation()">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    ` : ''}
+                                </div>
+                            `;
+                            return `
+                                <div class="search-result-item ${item.type}" data-product-url="${url}">
+                                    <div class="search-result-icon">
+                                        ${icon}
+                                    </div>
+                                    <div class="search-result-content">
+                                        ${content}
+                                    </div>
+                                    <div class="search-result-type">
+                                        ${item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                                    </div>
+                                </div>
+                            `;
+                        default:
+                            icon = '<i class="fas fa-file"></i>';
+                            url = item.url || '#';
+                            content = `<h4>${item.name}</h4>`;
+                            return `
+                                <a href="${url}" class="search-result-item ${item.type}">
+                                    <div class="search-result-icon">
+                                        ${icon}
+                                    </div>
+                                    <div class="search-result-content">
+                                        ${content}
+                                    </div>
+                                    <div class="search-result-type">
+                                        ${item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                                    </div>
+                                </a>
+                            `;
+                    }
+                }).join('');
+
+                resultsContainer.html(`
+                    <div class="search-results-container">
+                        <div class="search-results-header">
+                            <span>Search Results</span>
+                            <small>${sortedData.length} ${sortedData.length === 1 ? 'item' : 'items'} found</small>
+                        </div>
+                        ${resultsHtml}
+                    </div>
+                `);
+            },
+            error: function(xhr, status, error) {
+                console.error('Search error:', error);
+                resultsContainer.html(`
+                    <div class="search-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Search failed</p>
+                        <small>Please try again later</small>
+                    </div>
+                `);
+            }
+        });
+    }, 300);
+
+    // Desktop event handlers
+    $desktopSearchInput.on('input', function() {
+        performSearch($desktopSearchInput, $desktopSearchResults);
+    });
+    $searchBtn.on('click', function() {
+        performSearch($desktopSearchInput, $desktopSearchResults);
+    });
+    $desktopSearchInput.on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch($desktopSearchInput, $desktopSearchResults);
+        }
+    });
+
+    // Mobile event handlers
+    $mobileSearchInput.on('input', function() {
+        performSearch($mobileSearchInput, $mobileSearchResults);
+    });
+    $mobileSearchInput.on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch($mobileSearchInput, $mobileSearchResults);
+        }
+    });
+
+    // Close search results when clicking outside
+    $(document).on('click', function(event) {
+        if (!$(event.target).closest('.search-box, #searchResults, .s-mob, #mobileSearchResults').length) {
+            $desktopSearchResults.empty().hide();
+            $mobileSearchResults.empty().hide();
+            $('.search-container').hide();
+            $mobileSearchInput.val('');
+        }
+    });
+
+    // Handle datasheet item clicks
+    const handleDatasheetClick = function(e) {
+        if (!$(e.target).closest('a').length) {
+            const productUrl = $(this).data('product-url');
+            if (productUrl) {
+                window.location.href = productUrl;
+            }
+        }
+    };
+    $desktopSearchResults.on('click', '.search-result-item.datasheet', handleDatasheetClick);
+    $mobileSearchResults.on('click', '.search-result-item.datasDATEsheet', handleDatasheetClick);
+
+    // Handle keyboard navigation
+    const handleKeyboardNavigation = function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const $item = $(this);
+            if ($item.hasClass('datasheet')) {
+                const $downloadLink = $item.find('.btn-download');
+                if ($downloadLink.length) {
+                    $downloadLink[0].click();
+                } else {
+                    const $viewLink = $item.find('.btn-outline-secondary');
+                    if ($viewLink.length) {
+                        window.location.href = $viewLink.attr('href');
+                    }
+                }
+            } else {
+                window.location.href = $item.attr('href');
+            }
+        }
+    };
+    $desktopSearchResults.on('keydown', '.search-result-item', handleKeyboardNavigation);
+    $mobileSearchResults.on('keydown', '.search-result-item', handleKeyboardNavigation);
+
+    // Clear search on Escape key
+    $desktopSearchInput.on('keydown', function(e) {
+        if (e.key === 'Escape') {
+            $(this).val('');
+            $desktopSearchResults.empty().hide();
+        }
+    });
+    $mobileSearchInput.on('keydown', function(e) {
+        if (e.key === 'Escape') {
+            $(this).val('');
+            $mobileSearchResults.empty().hide();
+            $('.search-container').hide();
+        }
+    });
+
+    // Override clearSearch to clear input and results
+    window.clearSearch = function(close) {
+        const mobsearch = close.parentElement;
+        mobsearch.style.display = 'none';
+        $mobileSearchInput.val('');
+        $mobileSearchResults.empty().hide();
+    };
+});
+</script>

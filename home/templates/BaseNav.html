@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% load static %}
+
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+
+    <!-- Favicon -->
+    <link rel="icon" href="{% static 'dassets/ico.png' %}">
+    <title>HubNetix</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <!-- jQuery UI CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.3/themes/base/jquery-ui.min.css" integrity="sha512-8PjjnSP8Bw/WNPxF6wkklW6qlQJdWJc/3w/ZQPvZ/1bjVDkrrSqLe9mfPYrMxtnzsXFPc434+u4FHLnLjXTSsg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'frontassets/css/style.css' %}">
+    <link href="{% static 'dassets/css/reset.css' %}" rel="stylesheet">
+    <link href="{% static 'dassets/aos/aos.css' %}" rel="stylesheet">
+    <link href="{% static 'dassets/css/font-awesome.css' %}" rel="stylesheet">
+    <link href="{% static 'dassets/css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'dassets/lity/lity.min.css' %}" rel="stylesheet">
+
+    <!-- jQuery and Bootstrap JS -->
+    <script src="{% static 'dassets/js/jquery.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'dassets/aos/aos.js' %}"></script>
+    <script src="{% static 'dassets/js/modernizr.js' %}"></script>
+    <script src="{% static 'dassets/lity/lity.min.js' %}"></script>
+
+  </head>
+
+  <body>
+    <!-- Header Section -->
+    <div class="header">
+      <div class="container">
+        <nav class="navbar navbar-expand-lg">
+          <div class="container">
+            <!-- Brand/Logo -->
+            <!-- <a class="navbar-brand" href="{% url 'account-login-page' %}">
+              <img src="{% static 'dassets/img/logo.png' %}" class="logo" alt="The Raw Medical">
+            </a> -->
+            <a class="navbar-brand" href="{% url 'account-login-page' %}">
+              <span class="logo-text">HubNetix</span>
+            </a>
+
+            <!-- Toggler Button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navbar Links -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+              <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                {% if is_authenticated %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'account-login-page' %}">xxxxxx</a></li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'account-login-page' %}">xxxxx</a></li>
+                {% endif %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'account-login-page' %}">xxxxx</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'account-login-page' %}">xxxxx</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'account-login-page' %}">xxxxx</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'account-login-page' %}">xxxxx</a></li>
+                {% if is_authenticated %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'account-login-page' %}">Logout</a></li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'account-login-page' %}">Login</a></li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Content Section -->
+    {% block body %}
+    {% endblock %}
+
+    <!-- Footer Section -->
+    <div class="footer">
+      <div class="container">
+          <div class="row">
+              <!-- Contact Info -->
+              <div class="col-5">
+                  <h2>Have A Question?</h2>
+                  <p>We understand that services can be complex and overwhelming. We are committed to making the process as easy and stress-free as possible.</p>
+                  <a class="c-btn" href="{% url 'account-login-page' %}">Contact Us</a>
+              </div>
+  
+              <!-- Additional Info -->
+              <div class="col-7">
+                  <div class="row">
+                      <!-- Contact Details -->
+                      <div class="col-6">
+                          <h3>Reach Out To Us At</h3>
+                          <ul>
+                              <li><a href="tel:+1234567890"><i class="fa fa-phone"></i> +xx xxx xxxx</a></li>
+                              <li><a href="tel:+0987654321"><i class="fa fa-phone"></i> +xx xxx xxxx</a></li>
+                              <li><a href="mailto:info@example.com"><i class="fa fa-envelope"></i> info@example.com</a></li>
+                          </ul>
+  
+                          <!-- Social Media Links -->
+                          <!-- <div class="foot-social">
+                              <h4>Social Media Links</h4>
+                              <ul>
+                                  <li><a href="#" target="_blank"><i class="fa fa-facebook"></i></a></li>
+                                  <li><a href="#" target="_blank"><i class="fa fa-instagram"></i></a></li>
+                                  <li><a href="#" target="_blank"><i class="fa fa-youtube"></i></a></li>
+                                  <li><a href="#" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+                              </ul>
+                          </div> -->
+                      </div>
+  
+                      <!-- Office Info -->
+                      <div class="col-6">
+                          <h3>Office</h3>
+                          <p>123 Main Street<br>City, Country</p>   
+                      </div>
+                  </div>
+              </div>
+          </div>
+  
+          <div class="copyright">
+              <div class="row">
+                  <div class="col">
+                      <p>Copyright © Your Company. All rights reserved.</p>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
+  
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.3/jquery-ui.min.js" crossorigin="anonymous"></script>
+    <script src="{% static 'frontassets/js/main.js' %}"></script>
+
+    <!-- Alert Dismissal Script -->
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          document.querySelectorAll('.alert').forEach(alert => {
+            alert.classList.remove('show');
+            alert.classList.add('fade');
+            setTimeout(() => alert.remove(), 500);
+          });
+        }, 2000);
+      });
+    </script>
+
+  </body>
+
+
+</html>

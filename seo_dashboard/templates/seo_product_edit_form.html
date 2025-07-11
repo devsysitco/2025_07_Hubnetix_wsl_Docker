@@ -1,0 +1,161 @@
+{% include 'seo_dashboard_base.html' %}
+
+{% load static %}
+
+{% block body %}
+
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Edit Product SEO</h4>
+                <h6>Modify Existing SEO Details</h6>
+            </div>
+            <div class="action-buttons d-flex">
+                <a href="{% url 'seo_dashboard-products_list' %}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <form action="{% url 'seo_dashboard-product_edit' product.pk %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Product Core SEO Fields -->
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ product_form.name.label }}</label>
+                                {{ product_form.name }}
+                                {{ product_form.name.errors }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ product_form.slug.label }}</label>
+                                {{ product_form.slug }}
+                                {{ product_form.slug.errors }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ product_form.short_description.label }}</label>
+                                {{ product_form.short_description }}
+                                {{ product_form.short_description.errors }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ product_form.detailed_description.label }}</label>
+                                {{ product_form.detailed_description }}
+                                {{ product_form.detailed_description.errors }}
+                            </div>
+                        </div>
+                        
+                        <!-- Main Image Handling -->
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ product_form.main_image.label }}</label>
+                                {% if product.main_image %}
+                                    <div class="mb-3">
+                                        <img src="{{ product.main_image.url }}" alt="Current Main Image" class="img-thumbnail" style="max-height: 150px;">
+                                    </div>
+                                {% endif %}
+                                {{ product_form.main_image }}
+                                {{ product_form.main_image.errors }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ product_form.main_image_alt.label }}</label>
+                                {{ product_form.main_image_alt }}
+                                {{ product_form.main_image_alt.errors }}
+                            </div>
+                        </div>
+                        
+                        <!-- Meta Information -->
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ product_form.meta_tags.label }}</label>
+                                {{ product_form.meta_tags }}
+                                {{ product_form.meta_tags.errors }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ product_form.meta_description.label }}</label>
+                                {{ product_form.meta_description }}
+                                {{ product_form.meta_description.errors }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label>{{ product_form.canonical_url.label }}</label>
+                                {{ product_form.canonical_url }}
+                                {{ product_form.canonical_url.errors }}
+                            </div>
+                        </div>
+
+
+                        <!-- Product Image Formset -->
+                        {{ image_formset.management_form }}
+                        {% for form in image_formset %}
+                            <div class="col-lg-12">
+                                <div class="form-group">
+                                    <!-- Render all hidden fields (e.g., id, deletion markers) -->
+                                    {% for hidden_field in form.hidden_fields %}
+                                        {{ hidden_field }}
+                                    {% endfor %}
+                                    {{ form.non_field_errors }}
+                                    
+                                    <label>{{ form.product_image.label }}</label>
+                                    {% if form.instance.pk and form.instance.product_image %}
+                                        <div class="mb-3">
+                                            <img src="{{ form.instance.product_image.url }}" alt="Current Image" class="img-thumbnail" style="max-height: 150px;">
+                                        </div>
+                                    {% endif %}
+                                    {{ form.product_image }}
+                                    {{ form.product_image.errors }}
+                                    
+                                    <label>{{ form.alt_text.label }}</label>
+                                    {{ form.alt_text }}
+                                    {{ form.alt_text.errors }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        
+                        <!-- Submit and Cancel -->
+                        <div class="col-lg-12">
+                            <button type="submit" class="btn btn-submit me-2">
+                                Update Product
+                            </button>
+                            <a href="{% url 'seo_dashboard-category_list' %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

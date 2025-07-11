@@ -1,0 +1,132 @@
+{% extends 'home_base.html' %}
+{% load static %}
+
+{% block meta_description %}{{ category.meta_description }}{% endblock %}
+{% block meta_keywords %}{{ category.meta_tags }}{% endblock %}
+{% block og_title %}{% if category.seo_name %}{{ category.seo_name }} | Hubnetix{% else %}{{ category.name }} | Hubnetix{% endif %}{% endblock %}
+{% block og_description %}{{ category.meta_description }}{% endblock %}
+{% block og_image %}{% if category.banner %}{{ request.scheme }}://{{ request.get_host }}{{ category.banner.url }}{% endif %}{% endblock %}
+{% block title %}{% if category.seo_name %}{{ category.seo_name }} | Hubnetix{% else %}{{ category.name }} | Hubnetix{% endif %}{% endblock %}
+{% block canonical_url %}<link rel="canonical" href="{% if category.canonical_url %}{{ category.canonical_url }}{% else %}{{ request.build_absolute_uri }}{% endif %}">{% endblock %}
+
+{% block content %}
+
+
+<!-- Banner Section -->
+<section class="sub-banner">
+    <img src="{{ banner_url }}" alt="{{ category.banner_alt|default:category.name }}">
+</section>
+
+<div class="title-area">
+    <div class="container">
+        {% if parent_category %}
+        <h3>{{ parent_category.name }} | {{ category.name }}</h3>
+        {% else %}
+        <h3>{{ category.name }}</h3>
+        {% endif %}
+        <h4>{{ products_count }} Results</h4>
+    </div>
+</div>
+
+<section class="product-list">
+    <div class="container">
+        <div class="row g-4">
+            {% if products %}
+                {% for product in products %}
+                    <div class="col-3">
+                        <div class="blog-card pro-card list-card">
+                            {% comment %} Product Image Section {% endcomment %}
+                            <div class="blog-img position-relative">
+                                {% if product.is_best_seller %}
+                                    <span class="bs">best seller</span>
+                                {% endif %}
+                                <a href="{% url 'user_account-product_detail_view' category.slug product.slug %}">
+                                    <img src="{% if product.main_image %}{{ product.main_image.url }}{% else %}{% static 'home_assets/media/default-image.png' %}{% endif %}"
+                                         alt="{% if product.main_image_alt %}{{ product.main_image_alt }}{% else %}{{ product.name }}{% endif %}"
+                                         class="rounded-3">
+                                </a>
+                            </div>
+
+                            {% comment %} Product Title Section {% endcomment %}
+                            <h2>
+                                <a href="{% url 'user_account-product_detail_view' category.slug product.slug %}">
+                                    {{ product.name }}
+                                </a>
+                            </h2>
+
+                            {% comment %} Product Actions Section {% endcomment %}
+                            {% if request.session.customerid %}
+                                {% comment %} Authenticated User Actions {% endcomment %}
+                                {% if product.id in products_with_datasheets_ids %}
+                                    <a href="{% url 'user_account-product_detail_view' category.slug product.slug %}">
+                                        <button class="buy-now position-relative">
+                                            <span>Explore</span>
+                                        </button>
+                                    </a>
+                                {% else %}
+                                    <button class="buy-now position-relative add-to-list-trigger"
+                                            onclick="show(this)"
+                                            data-product-id="{{ product.id }}">
+                                        <span>Add To List</span>
+                                        <div class="show-box" style="display:none">
+                                            <ul style="max-height: 150px; overflow-y: auto;">
+                                                {% if user_lists %}
+                                                    {% for user_list in user_lists %}
+                                                        <li>
+                                                            <label class="form-check-label" onclick="event.stopPropagation();">
+                                                                <input type="checkbox"
+                                                                       class="list-checkbox"
+                                                                       id="list-{{ user_list.id }}"
+                                                                       name="user_list"
+                                                                       value="{{ user_list.id }}"
+                                                                       onclick="event.stopPropagation();">
+                                                                {{ user_list.name }}
+                                                            </label>
+                                                        </li>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    <li>No lists available. Create a new list below.</li>
+                                                {% endif %}
+                                            </ul>
+                                            <div class="box-bottom">
+                                                <a href="javascript:void(0);" class="p-btn add-to-list-btn">Add To List</a>
+                                                <a href="javascript:void(0);" class="list-v create-new-list-link">Create New List</a>
+                                                <a href="{% url 'home_list' %}" class="list-v">View my lists</a>
+                                            </div>
+                                        </div>
+                                    </button>
+                                {% endif %}
+                            {% else %}
+                                {% comment %} Non-Authenticated User Actions {% endcomment %}
+                                {% if product.id in products_with_datasheets_ids %}
+                                    <a href="{% url 'user_account-product_detail_view' category.slug product.slug %}">
+                                        <button class="buy-now position-relative">
+                                            <span>Explore</span>
+                                        </button>
+                                    </a>
+                                {% else %}
+                                    <button class="buy-now position-relative"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#signModal">
+                                        <span>Add To List</span>
+                                    </button>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                {% comment %} No Products Message {% endcomment %}
+                <div class="col-12">
+                    <p>No products available for this category.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+
+{% include 'product_home_list_modal.html' %}
+
+
+{% endblock %}

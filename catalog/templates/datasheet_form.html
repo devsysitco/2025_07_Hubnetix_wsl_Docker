@@ -1,0 +1,468 @@
+{% extends 'admin_dashboard_base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block extra_css %}
+<style>
+    /* Messages Styling */
+    .messages-container {
+        margin-bottom: 20px;
+    }
+    .alert {
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    /* Form Styling */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-label {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    .text-danger {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    /* Dimension and Part Number Section */
+    .dimensions-section, .part-number-section {
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        padding: 1.25rem;
+        margin-top: 1rem;
+    }
+    .size-dimension-field, .part-number-field {
+        transition: all 0.3s ease-in-out;
+        display: none;
+    }
+    .size-dimension-field.show, .part-number-field.show {
+        display: block;
+    }
+
+    /* Buttons */
+    .btn-submit {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+    }
+    .btn-submit:hover {
+        background-color: #0056b3;
+    }
+    .btn-cancel {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+    }
+    .btn-cancel:hover {
+        background-color: #5a6268;
+    }
+    .btn-added {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+    }
+    .btn-added:hover {
+        background-color: #218838;
+    }
+
+    /* Card Styling */
+    .card {
+        border: 1px solid rgba(0,0,0,.125);
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <!-- Header Section -->
+        <div class="page-header">
+            <div class="page-title">
+                <h4>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Datasheet</h4>
+                <h6>{% if form.instance.pk %}Modify Existing{% else %}Create New{% endif %} Datasheet</h6>
+            </div>
+            <div class="page-btn">
+                <a href="{% url 'admin_dashboard-datasheet_list' %}" class="btn btn-added">
+                    <img src="{% static 'assets/img/icons/eye.svg' %}" class="me-1" alt="View Datasheets">View Datasheets
+                </a>
+            </div>
+        </div>
+
+        <!-- Messages Section -->
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Form Card -->
+        <div class="card">
+            <form method="post" enctype="multipart/form-data" id="datasheetForm" novalidate>
+                {% csrf_token %}
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Name Field -->
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="form-label">{{ form.name.label }}</label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Product Field -->
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="form-label">{{ form.product.label }}</label>
+                                {{ form.product }}
+                                {% if form.product.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.product.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Description Field -->
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="form-label">{{ form.description.label }}</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.description.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- File Field -->
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label class="form-label fw-bold">{{ form.file.label }}</label>
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        {% if form.instance.file %}
+                                        <div class="mb-3">
+                                            <p>Current file: <a href="{{ form.instance.file.url }}" target="_blank">{{ form.instance.get_filename }}</a></p>
+                                        </div>
+                                        {% endif %}
+                                        {{ form.file }}
+                                        {% if form.file.help_text %}
+                                        <small class="form-text text-muted">{{ form.file.help_text }}</small>
+                                        {% endif %}
+                                        {% if form.file.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.file.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Part Number Section -->
+                        <div class="col-lg-12">
+                            <div class="part-number-section">
+                                <div class="form-group">
+                                    <div class="form-check form-switch">
+                                        {{ form.include_part_number }}
+                                        <label class="form-check-label" for="include_part_number">
+                                            {{ form.include_part_number.label }}
+                                        </label>
+                                    </div>
+                                    {% if form.include_part_number.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.include_part_number.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    {% if form.include_part_number.help_text %}
+                                    <small class="form-text text-muted">{{ form.include_part_number.help_text }}</small>
+                                    {% endif %}
+                                </div>
+
+                                <div class="row" id="part-number-field-container">
+                                    <!-- Part Number Field -->
+                                    <div class="col-lg-6 part-number-field">
+                                        <div class="form-group">
+                                            <label class="form-label">{{ form.part_number.label }}</label>
+                                            {{ form.part_number }}
+                                            {% if form.part_number.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.part_number.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                            {% if form.part_number.help_text %}
+                                            <small class="form-text text-muted">{{ form.part_number.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dimensions Section -->
+                        <div class="col-lg-12">
+                            <div class="dimensions-section">
+                                <div class="form-group">
+                                    <div class="form-check form-switch">
+                                        {{ form.include_size_dimensions }}
+                                        <label class="form-check-label" for="include_size_dimensions">
+                                            {{ form.include_size_dimensions.label }}
+                                        </label>
+                                    </div>
+                                    {% if form.include_size_dimensions.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.include_size_dimensions.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    {% if form.include_size_dimensions.help_text %}
+                                    <small class="form-text text-muted">{{ form.include_size_dimensions.help_text }}</small>
+                                    {% endif %}
+                                </div>
+
+                                <div class="row" id="dimension-fields-container">
+                                    <!-- Size Field -->
+                                    <div class="col-lg-6 size-dimension-field">
+                                        <div class="form-group">
+                                            <label class="form-label">{{ form.size.label }}</label>
+                                            {{ form.size }}
+                                            {% if form.size.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.size.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                            {% if form.size.help_text %}
+                                            <small class="form-text text-muted">{{ form.size.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Width Field -->
+                                    <div class="col-lg-6 size-dimension-field">
+                                        <div class="form-group">
+                                            <label class="form-label">{{ form.width.label }}</label>
+                                            {{ form.width }}
+                                            {% if form.width.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.width.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                            {% if form.width.help_text %}
+                                            <small class="form-text text-muted">{{ form.width.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Depth Field -->
+                                    <div class="col-lg-6 size-dimension-field">
+                                        <div class="form-group">
+                                            <label class="form-label">{{ form.depth.label }}</label>
+                                            {{ form.depth }}
+                                            {% if form.depth.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.depth.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                            {% if form.depth.help_text %}
+                                            <small class="form-text text-muted">{{ form.depth.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Height Field -->
+                                    <div class="col-lg-6 size-dimension-field">
+                                        <div class="form-group">
+                                            <label class="form-label">{{ form.height.label }}</label>
+                                            {{ form.height }}
+                                            {% if form.height.errors %}
+                                            <div class="text-danger">
+                                                {% for error in form.height.errors %}
+                                                    {{ error }}
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                            {% if form.height.help_text %}
+                                            <small class="form-text text-muted">{{ form.height.help_text }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="col-lg-12">
+                            <div class="form-group mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    {% if form.instance.pk %}Update Datasheet{% else %}Add Datasheet{% endif %}
+                                </button>
+                                <a href="{% url 'admin_dashboard-datasheet_list' %}" class="btn btn-cancel">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize Select2 for product dropdown
+    $("#id_product").select2({
+        placeholder: "Select a product",
+        allowClear: true
+    });
+
+    // File input change event to show selected filename
+    $('input[type="file"]').change(function(e) {
+        var fileName = e.target.files[0].name;
+        $(this).next('.custom-file-label').html(fileName);
+    });
+
+    // Part number field toggle
+    const partNumberCheckbox = $('#include_part_number');
+    const partNumberField = $('.part-number-field');
+
+    function togglePartNumberField() {
+        const isChecked = partNumberCheckbox.is(':checked');
+        if (isChecked) {
+            partNumberField.css('display', 'block').addClass('show');
+            partNumberField.find('input').prop('disabled', false);
+        } else {
+            partNumberField.css('display', 'none').removeClass('show');
+            partNumberField.find('input').val('').prop('disabled', true);
+        }
+    }
+
+    // Dimension fields toggle
+    const dimensionCheckbox = $('#include_size_dimensions');
+    const sizeDimensionFields = $('.size-dimension-field');
+
+    function toggleDimensionFields() {
+        const isChecked = dimensionCheckbox.is(':checked');
+        sizeDimensionFields.each(function() {
+            if (isChecked) {
+                $(this).css('display', 'block').addClass('show');
+                $(this).find('input').prop('disabled', false);
+            } else {
+                $(this).css('display', 'none').removeClass('show');
+                $(this).find('input').val('').prop('disabled', true);
+            }
+        });
+    }
+
+    // Initial state
+    if (partNumberCheckbox.is(':checked')) {
+        partNumberField.css('display', 'block').addClass('show');
+        partNumberField.find('input').prop('disabled', false);
+    } else {
+        partNumberField.find('input').prop('disabled', true);
+    }
+
+    if (dimensionCheckbox.is(':checked')) {
+        sizeDimensionFields.css('display', 'block').addClass('show');
+        sizeDimensionFields.find('input').prop('disabled', false);
+    } else {
+        sizeDimensionFields.find('input').prop('disabled', true);
+    }
+
+    // Checkbox change events
+    partNumberCheckbox.on('change', togglePartNumberField);
+    dimensionCheckbox.on('change', toggleDimensionFields);
+
+    // Form validation
+    $('#datasheetForm').on('submit', function(e) {
+        // Validate part number
+        if (partNumberCheckbox.is(':checked') && !partNumberField.find('input').val().trim()) {
+            e.preventDefault();
+            alert('Please provide a part number when "Include Part Number" is enabled.');
+            return;
+        }
+
+        // Validate dimensions
+        if (dimensionCheckbox.is(':checked')) {
+            let hasValue = false;
+            sizeDimensionFields.each(function() {
+                const input = $(this).find('input');
+                if (input.val().trim() !== '') {
+                    hasValue = true;
+                }
+            });
+            if (!hasValue) {
+                e.preventDefault();
+                alert('Please provide at least one measurement when size and dimensions are enabled.');
+            }
+        }
+    });
+
+    // Auto-hide messages after 5 seconds
+    setTimeout(function() {
+        $('.alert').fadeOut('slow', function() {
+            $(this).remove();
+        });
+    }, 5000);
+});
+</script>
+{% endblock %}

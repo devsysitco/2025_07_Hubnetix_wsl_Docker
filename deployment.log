@@ -1,0 +1,38 @@
+2025-07-10 11:22:50 - Starting deployment
+2025-07-10 11:22:50 - Virtual environment not found. Creating one...
+2025-07-10 11:22:54 - Activating virtual environment
+2025-07-10 11:22:54 - Upgrading pip
+2025-07-10 11:22:56 - Installing dependencies
+2025-07-10 11:23:05 - Running migrations
+2025-07-10 11:23:07 - Collecting static files
+2025-07-10 11:23:08 - Restarting Gunicorn
+2025-07-10 11:23:09 - Restarting Nginx
+2025-07-10 11:23:09 - Deployment completed successfully
+2025-07-10 11:23:32 - Starting deployment
+2025-07-10 11:23:32 - Activating virtual environment
+2025-07-10 11:23:32 - Upgrading pip
+2025-07-10 11:23:33 - Installing dependencies
+2025-07-10 11:23:34 - Running migrations
+2025-07-10 11:23:35 - Collecting static files
+2025-07-10 11:23:36 - Restarting Gunicorn
+2025-07-10 11:23:36 - Restarting Nginx
+2025-07-10 11:23:36 - Deployment completed successfully
+2025-07-10 11:31:30 - Starting deployment
+2025-07-10 11:31:30 - Activating virtual environment
+2025-07-10 11:31:30 - Upgrading pip
+2025-07-10 11:31:31 - Installing dependencies
+2025-07-10 11:31:32 - Running migrations
+2025-07-10 11:31:35 - Collecting static files
+2025-07-10 11:31:36 - Restarting Gunicorn
+2025-07-10 11:31:36 - Restarting Nginx
+2025-07-10 11:31:36 - Deployment completed successfully
+2025-07-10 11:51:07 - Starting deployment
+2025-07-10 11:51:07 - Virtual environment not found. Creating one...
+2025-07-10 11:51:11 - Activating virtual environment
+2025-07-10 11:51:11 - Upgrading pip
+2025-07-10 11:51:14 - Installing dependencies
+2025-07-10 11:51:19 - Running migrations
+2025-07-10 11:51:21 - Collecting static files
+2025-07-10 11:51:22 - Restarting Gunicorn
+2025-07-10 11:51:22 - Restarting Nginx
+2025-07-10 11:51:22 - Deployment completed successfully

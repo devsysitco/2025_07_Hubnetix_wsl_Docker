@@ -1,0 +1,176 @@
+{% include 'seo_dashboard_base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+<style>
+    .category-details-container {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    .category-bar {
+        list-style-type: none;
+        padding: 0;
+    }
+    .category-bar li {
+        margin-bottom: 15px;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 10px;
+    }
+    .category-bar li h4 {
+        color: #6c757d;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    .category-bar li h6 {
+        color: #333;
+    }
+    .category-image-gallery {
+        margin-top: 20px;
+    }
+    .category-image-gallery .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+        margin-bottom: 15px;
+    }
+    .category-image-gallery .gallery-item:hover {
+        transform: scale(1.05);
+    }
+    .category-image-gallery img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+    .image-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0,0,0,0.5);
+        color: white;
+        padding: 5px 10px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Category Details</h4>
+                <h6>Comprehensive category information</h6>
+            </div>
+            <div class="action-buttons d-flex">
+                <a href="{% url 'seo_dashboard-products_list' %}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+                <a href="{% url 'seo_dashboard-category_edit' category.pk %}" class="btn btn-outline-primary">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            {% if category.icon or category.banner or category.side_image %}
+            <div class="col-lg-8 col-sm-12">
+            {% else %}
+            <div class="col-lg-12 col-sm-12">
+            {% endif %}
+                <div class="card category-details-container">
+                    <div class="card-body">
+                        <ul class="category-bar">
+                            <li>
+                                <h4>Category Name</h4>
+                                <h6>{{ category.name }}</h6>
+                            </li>
+                            <li>
+                                <h4>Slug</h4>
+                                <h6>{{ category.slug }}</h6>
+                            </li>
+                            <li>
+                                <h4>Short Description</h4>
+                                <h6>{{ category.short_description|default:"Not provided" }}</h6>
+                            </li>
+                            <li>
+                                <h4>Detailed Description</h4>
+                                <h6>{{ category.detailed_description|safe|default:"Not provided" }}</h6>
+                            </li>
+                            <li>
+                                <h4>Meta Tags</h4>
+                                <h6>{{ category.meta_tags|default:"Not provided" }}</h6>
+                            </li>
+                            <li>
+                                <h4>Meta Description</h4>
+                                <h6>{{ category.meta_description|default:"Not provided" }}</h6>
+                            </li>
+                            <li>
+                                <h4>Canonical URL</h4>
+                                <h6>{{ category.canonical_url|default:"Not provided" }}</h6>
+                            </li>
+                            <li>
+                                <h4>Icon Alt</h4>
+                                <h6>{{ category.icon_alt|default:"Not provided" }}</h6>
+                            </li>
+                            <li>
+                                <h4>Banner Alt</h4>
+                                <h6>{{ category.banner_alt|default:"Not provided" }}</h6>
+                            </li>
+                            <li>
+                                <h4>Side Image Alt</h4>
+                                <h6>{{ category.side_image_alt|default:"Not provided" }}</h6>
+                            </li>
+                            <li>
+                                <h4>Updated At</h4>
+                                <h6>{{ category.updated_at|date:"F d, Y H:i" }}</h6>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {% if category.icon or category.banner or category.side_image %}
+            <div class="col-lg-4 col-sm-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="category-image-gallery">
+                            {% if category.icon %}
+                            <div class="gallery-item">
+                                <a href="{{ category.icon.url }}" data-fancybox="category-gallery" data-caption="Category Icon">
+                                    <img src="{{ category.icon.url }}" alt="Category Icon">
+                                    <div class="image-label">Icon</div>
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% if category.banner %}
+                            <div class="gallery-item">
+                                <a href="{{ category.banner.url }}" data-fancybox="category-gallery" data-caption="Category Banner">
+                                    <img src="{{ category.banner.url }}" alt="Category Banner">
+                                    <div class="image-label">Banner</div>
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% if category.side_image %}
+                            <div class="gallery-item">
+                                <a href="{{ category.side_image.url }}" data-fancybox="category-gallery" data-caption="Category Side Image">
+                                    <img src="{{ category.side_image.url }}" alt="Category Side Image">
+                                    <div class="image-label">Side Image</div>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+{% endblock %}

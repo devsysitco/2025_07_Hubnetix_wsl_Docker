@@ -1,0 +1,49 @@
+{% load static %}
+<div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab" tabindex="0">
+  <div class="">
+    <div class="text-center">
+      <h2 class="title">
+        Become a Partner
+      </h2>
+      <p>Would like to be a strategic partner, please get in touch</p>
+    </div>
+    <form id="partnerApplicationForm" method="POST">
+        {% csrf_token %}
+        <div class="row support-form-area">
+            <div class="col-6">
+                <div class="inp-grp">
+                    <input type="text" name="name" placeholder="Your Name*" required>
+                </div>
+                <div class="inp-grp">
+                    <input type="text" name="position" placeholder="Position">
+                </div>
+                <div class="inp-grp">
+                    <input type="tel" name="phone" placeholder="Phone*" required>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="inp-grp">
+                    <input type="text" name="company" placeholder="Company" required>
+                </div>
+                <div class="inp-grp">
+                    <input type="email" name="email" placeholder="Email*" required>
+                </div>
+                <div class="inp-grp">
+                    <input type="text" name="country" placeholder="Country*" required>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="inp-grp mt-0">
+                    <textarea name="message" placeholder="Message*" rows="4" required></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="captcha-area">
+            <button class="buy-now" type="submit"><span>Submit</span></button>
+        </div>
+    </form>
+  </div>
+</div>

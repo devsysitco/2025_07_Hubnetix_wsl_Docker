@@ -1,0 +1,101 @@
+{% extends 'home_base.html' %}
+{% load static %}
+
+{% block meta_description %}{% if is_latest_page %}Latest Products from Hubnetix{% else %}Featured Products from Hubnetix{% endif %}{% endblock %}
+{% block meta_keywords %}{% if is_latest_page %}latest products, new arrivals{% else %}featured products, best products{% endif %}{% endblock %}
+{% block og_title %}{% if is_latest_page %}Latest Products | Hubnetix{% else %}Featured Products | Hubnetix{% endif %}{% endblock %}
+{% block og_description %}{% if is_latest_page %}Discover our latest products{% else %}Explore our featured products{% endif %}{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ banner_url }}{% endblock %}
+{% block title %}{% if is_latest_page %}Latest Products | Hubnetix{% else %}Featured Products | Hubnetix{% endif %}{% endblock %}
+{% block canonical_url %}<link rel="canonical" href="{{ request.build_absolute_uri }}">{% endblock %}
+
+{% block content %}
+
+<!-- Banner Section -->
+<!-- <section class="sub-banner">
+    <img src="{{ banner_url }}" alt="{% if is_latest_page %}Latest Products{% else %}Featured Products{% endif %}">
+</section> -->
+
+<!-- Banner Section -->
+<section class="sub-banner-new">
+    <img class="full-width" src="{{ banner_url }}" alt="Latest Products | Featured Products">
+</section>
+
+<div class="title-area">
+    <div class="container">
+        <h3>{% if is_latest_page %}Latest Products{% else %}Featured Products{% endif %}</h3>
+        <h4>{{ products_count }} Results</h4>
+    </div>
+</div>
+
+<!-- Products Section -->
+<section class="product-list">
+    <div class="container">
+        <div class="row g-4">
+            {% if products %}
+            {% for product in products %}
+            <div class="col-3">
+                <div class="blog-card pro-card list-card">
+                    <div class="blog-img position-relative">
+                        {% if product.is_best_seller %}
+                        <span class="bs">best seller</span>
+                        {% endif %}
+                        {% with first_category=product.categories.all|first %}
+                        <a href="{% url 'user_account-product_detail_view' first_category.slug product.slug %}">
+                            <img src="{% if product.main_image %}{{ product.main_image.url }}{% else %}{% static 'home_assets/media/default-image.png' %}{% endif %}"
+                                alt="{% if product.main_image_alt %}{{ product.main_image_alt }}{% else %}{{ product.name }}{% endif %}"
+                                class="rounded-3">
+                        </a>
+                        {% endwith %}
+                    </div>
+                    <h2>
+                        {% with first_category=product.categories.all|first %}
+                        <a href="{% url 'user_account-product_detail_view' first_category.slug product.slug %}">
+                            {{ product.name }}
+                        </a>
+                        {% endwith %}
+                    </h2>
+
+                    {% if request.session.customerid %}
+                    <button class="buy-now position-relative add-to-list-trigger" onclick="show(this)" data-product-id="{{ product.id }}">
+                        <span>Add To List</span>
+                        <div class="show-box" style="display:none">
+                            <ul style="max-height: 150px; overflow-y: auto;">
+                                {% for user_list in user_lists %}
+                                <li>
+                                    <label class="form-check-label" onclick="event.stopPropagation();">
+                                        <input type="checkbox" class="list-checkbox" id="list-{{ user_list.id }}" name="user_list" value="{{ user_list.id }}" onclick="event.stopPropagation();">
+                                        {{ user_list.name }}
+                                    </label>
+                                </li>
+                                {% empty %}
+                                <li>No lists available. Create a new list below.</li>
+                                {% endfor %}
+                            </ul>
+                            <div class="box-bottom">
+                                <a href="javascript:void(0);" class="p-btn add-to-list-btn">Add To List</a>
+                                <a href="javascript:void(0);" class="list-v create-new-list-link">Create New List</a>
+                                <a href="{% url 'home_list' %}" class="list-v">View my lists</a>
+                            </div>
+                        </div>
+                    </button>
+                    {% else %}
+                    <button class="buy-now position-relative" data-bs-toggle="modal" data-bs-target="#signModal">
+                        <span>Add To List</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="col-12">
+                <p>No {% if is_latest_page %}latest{% else %}featured{% endif %} products available.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% include 'product_home_list_modal.html' %}
+
+{% endblock %}

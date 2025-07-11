@@ -1,0 +1,148 @@
+{% extends 'home_base.html' %}
+{% load static %}
+
+{% block meta_description %}This is a static meta description for this page.{% endblock %}
+{% block meta_keywords %}static, meta, keywords, example{% endblock %}
+{% block og_title %} Contact Us | Hubnetix{% endblock %}
+{% block og_description %}This is a static Open Graph description for this page.{% endblock %}
+{% block og_image %}https://example.com/static-image.jpg{% endblock %}
+{% block title %} Contact Us | Hubnetix{% endblock %}
+
+{% block content %}
+
+
+<style>
+    a:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+</style>
+
+<!-- Banner Section -->
+<section class="sub-banner-new">
+    <img class="full-width" src="{{ banner_url }}" alt="contact-us">
+</section>
+
+<section class="contact">
+    <div class="container">
+        <div class="row gx-5">
+            <div class="col-6">
+                <div class="container">
+                    <form id="contactForm" method="POST">
+                        {% csrf_token %}
+                        <div class="input-area-contact">
+                            <div class="inp-grp">
+                                <input type="text" name="full_name" id="full_name" placeholder="Your Full Name" required>
+                            </div>
+                            <div class="inp-grp">
+                                <input type="email" name="email" id="email" placeholder="Your Email" required>
+                            </div>
+                            <div class="inp-grp">
+                                <input type="tel" name="phone" id="phone" placeholder="Your Phone" required>
+                            </div>
+                            <div class="inp-grp">
+                                <textarea name="message" id="message" placeholder="Your Message" rows="3" required></textarea>
+                            </div>
+                        </div>
+                        <button class="buy-now" type="submit">
+                            <span>Submit</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="got">
+                    <h3>Get in touch</h3>
+                    <p>Contact us to discuss your needs or explore our solutions.</p>
+                    <ul>
+                        <li>
+                            <img src="{% static 'home_assets/media/maill.svg' %}" alt="">
+                            <div>
+                                <h4>info@hubnetix.com</h4>
+                                <p>Email Address</p>
+                            </div>
+                        </li>
+                        <li>
+                            <img src="{% static 'home_assets/media/phone.svg' %}" alt="">
+                            <div>
+                                <h4>123-456-7890</h4>
+                                <p>Phone</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#contactForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            Swal.fire({
+                title: 'Sending...',
+                html: 'Please wait while we process your message',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            var formData = new FormData(this);
+            
+            $.ajax({
+                url: '{% url "submit_contact" %}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if(response.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thank you!',
+                            text: response.message,
+                            confirmButtonColor: '#c53847'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                $('#contactForm')[0].reset();
+                            }
+                        });
+                    }
+                },
+                error: function(xhr) {
+                    if(xhr.responseJSON && xhr.responseJSON.errors) {
+                        var errors = xhr.responseJSON.errors;
+                        var errorMessage = '<ul style="text-align: left; list-style: none; padding: 0;">';
+                        for(var field in errors) {
+                            errorMessage += `<li style="margin-bottom: 8px;">• ${field}: ${errors[field].join(', ')}</li>`;
+                        }
+                        errorMessage += '</ul>';
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            html: '<div style="margin-bottom: 1rem;">Please correct the following errors:</div>' + errorMessage,
+                            confirmButtonColor: '#c53847'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'An error occurred. Please try again.',
+                            confirmButtonColor: '#c53847'
+                        });
+                    }
+                }
+            });
+        });
+    });
+    </script>
+{% endblock %}
