@@ -42,8 +42,7 @@ services:
     volumes:
       - django-static:/var/lib/django/static
       - django-media:/var/lib/django/media
-      - ../photoproject:/opt/django/django_project/photoproject:ro
-      - ../requirements.txt:/opt/django/django_project/requirements.txt:ro
+      - ../:/opt/django/django_project/:ro
     environment:
       - DATABASE_URL=mysql://${DB_USER}:${DB_PASSWORD}@db:${DB_PORT}/${DB_NAME}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
@@ -124,3 +123,4 @@ volumes:
   django-db-data:
   django-static:
   django-media:
+

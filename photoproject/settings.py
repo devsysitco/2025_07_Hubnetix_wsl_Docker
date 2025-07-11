@@ -100,12 +100,28 @@ TIME_ZONE = 'Asia/Kolkata'
 USE_I18N = True
 USE_TZ = True
 
-# Static and media files
-STATIC_ROOT = '/var/lib/django/static/'
-STATIC_URL = '/static/'
+# Static files configuration
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # Project-level static files
+]
 
+# Static files finders
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
+# Ensure static files are served properly
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+# Media files configuration (already present but ensure these values)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/var/lib/django/media/'
+
+# Static files configuration (already present but ensure these values)
+STATIC_URL = '/static/'
+STATIC_ROOT = '/var/lib/django/static/'
+
 
 # Default primary key
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

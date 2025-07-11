@@ -1,43 +1,27 @@
 #!/bin/bash
 set -e
 
-# Create logging directory
-mkdir -p /var/log/django
-touch /var/log/django/django.log
+# Wait for database to be ready
+echo "Waiting for database to be ready..."
+until mysql -h "${DB_HOST}" -u "${DB_USER}" -p"${DB_PASSWORD}" -e "SELECT 1" > /dev/null 2>&1; do
+    echo "Database not ready, waiting..."
+    sleep 2
+done
 
-# Wait for MySQL to be ready
-wait_for_mysql() {
-    local retries=30
-    echo "Waiting for MySQL to be ready..."
-    
-    while [ $retries -gt 0 ]; do
-        if mysqladmin ping -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASSWORD" --silent 2>/dev/null; then
-            echo "MySQL is ready!"
-            return 0
-        fi
-        
-        retries=$((retries - 1))
-        echo "Waiting for MySQL to be ready... ($retries attempts left)"
-        sleep 2
-    done
-    
-    echo "Failed to connect to MySQL after 30 attempts. Exiting."
-    exit 1
-}
+echo "Database is ready!"
 
-# Set environment variables for MySQL (use defaults if not set)
-DB_HOST=${DB_HOST:-db}
-DB_USER=${DB_USER:-admin}
-DB_PASSWORD=${DB_PASSWORD:-Django@Secure2024!}
-
-# Wait for MySQL
-wait_for_mysql
-
+# Run Django management commands
 echo "Running Django migrations..."
-python manage.py migrate
+python manage.py migrate --noinput
 
 echo "Collecting static files..."
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput --clear
 
-echo "Starting Django application..."
+# Create media directory if it doesn't exist
+mkdir -p /var/lib/django/media
+
+# Set proper permissions
+chown -R django:django /var/lib/django/static /var/lib/django/media
+
+echo "Starting application..."
 exec "$@"
